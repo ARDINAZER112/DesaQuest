@@ -1,4 +1,4 @@
-# PantauDesa ![PD](0-repo-asset/PantauDesa.jpeg)
+# PantauDesa <img src="0-repo-asset/PantauDesa.jpeg" width="300" height="200">
 
 Platform pemantauan pembangunan desa berbasis gamifikasi. Petugas membuat quest
 pembangunan, warga memantau langsung di lapangan lewat foto + validasi GPS, dan
