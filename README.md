@@ -66,26 +66,3 @@ menu hamburger yang bisa dibuka-tutup di layar mobile.
 5. **Admin** memantau statistik keseluruhan, mengelola kritik & saran warga, kelola pengguna,
    dan kelola katalog reward.
 
-## Catatan penting
-
-- **Persistensi data**: proyek ini memakai `localStorage` (lihat `src/lib/storage.js`) agar
-  bisa langsung jalan tanpa backend. Konsekuensinya, data **hanya tersimpan di browser
-  masing-masing perangkat** — tidak otomatis sinkron antara HP warga dan laptop petugas.
-  Untuk penggunaan nyata di desa (banyak pengguna berbeda perangkat), ganti lapisan ini
-  dengan panggilan ke backend sungguhan, misalnya:
-  - **Supabase** atau **Firebase** (paling cepat diintegrasikan, sudah ada auth & database), atau
-  - **REST API** kustom (Node.js/Express, Laravel, dll.) + database (PostgreSQL/MySQL).
-  Struktur data di `src/lib/data.js` (`users`, `quests`, `reports`, `rewards`, `redemptions`,
-  `feedback`) bisa langsung dipetakan menjadi tabel/koleksi di backend pilihan Anda.
-- **Autentikasi**: sistem login saat ini mengecek username/password yang tersimpan di
-  `localStorage` — cukup untuk mencegah akses asal-asalan pada tahap prototipe, tapi
-  **bukan pengamanan tingkat produksi** (password tidak di-hash, semua logic ada di
-  client). Untuk produksi, gunakan auth service (Supabase Auth/Firebase Auth/NextAuth)
-  dengan hashing password di server.
-- **GPS**: fitur "Cek Lokasi GPS Saya" memakai Geolocation API bawaan browser
-  (`navigator.geolocation`) — akan meminta izin lokasi ke pengguna saat dijalankan di
-  domain HTTPS atau `localhost`. Tombol simulasi disediakan sebagai fallback jika izin
-  ditolak, untuk keperluan demo.
-- **Peta**: radius proyek saat ini divisualisasikan sebagai lingkaran sederhana (bukan
-  peta interaktif). Untuk peta sungguhan, integrasikan **Leaflet + OpenStreetMap** (gratis)
-  atau **Google Maps JavaScript API** (perlu API key) di `WargaQuestDetail` dan `QuestForm`.
