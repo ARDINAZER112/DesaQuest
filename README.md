@@ -41,15 +41,15 @@ src/
 ├── index.css                # Tailwind directives + base style
 ├── lib/
 │   ├── data.js              # Seed data awal & fungsi bantu (haversine, level, format tanggal)
-│   └── storage.js           # Lapisan persistensi berbasis localStorage
+│   └── storage.js           # Lapisan persistensi berbasis localStorage (akan di pindah ke Supabase)
 ├── components/
 │   ├── ui.jsx                # Komponen UI primitif (Button, Panel, Tag, dll.)
 │   ├── AuthScreen.jsx         # Halaman Login & Daftar
 │   └── Shell.jsx              # Layout sidebar (desktop) + hamburger (mobile), dipakai oleh Admin, Petugas & Warga
 └── pages/
-    ├── AdminPages.jsx         # Dashboard, Kritik & Saran, Kelola Pengguna, Kelola Reward
-    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan, Leaderboard
-    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Peringkat, Profil — layout kartu/grid responsif
+    ├── AdminPages.jsx         # Dashboard, Kelola Pengguna, Kelola Reward
+    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan
+    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Profil — layout kartu/grid responsif
 ```
 
 Ketiga peran (Admin, Petugas, Warga) memakai `Shell` yang sama sehingga tampilan
