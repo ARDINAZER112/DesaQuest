@@ -54,8 +54,8 @@ src/
 │   └── Shell.jsx              # Layout sidebar (desktop) + hamburger (mobile), dipakai oleh Admin, Petugas & Warga
 └── pages/
     ├── AdminPages.jsx         # Dashboard, Kritik & Saran, Kelola Pengguna, Kelola Reward
-    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan, Leaderboard
-    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Peringkat, Profil — layout kartu/grid responsif
+    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan
+    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Profil — layout kartu/grid responsif
 ```
 
 Ketiga peran (Admin, Petugas, Warga) memakai `Shell` yang sama sehingga tampilan
@@ -72,4 +72,5 @@ menu hamburger yang bisa dibuka-tutup di layar mobile.
 4. **Warga** menukar XP dengan reward yang tersedia; stok otomatis berkurang.
 5. **Admin** memantau statistik keseluruhan, mengelola kritik & saran warga, kelola pengguna,
    dan kelola katalog reward.
+
 
