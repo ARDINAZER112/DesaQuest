@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Loader2, LayoutDashboard, MessageSquare, Users, Gift, PlusCircle, ClipboardList, CheckCircle2, Trophy, Home, Target, User } from "lucide-react";
+import {
+  Loader2,
+  LayoutDashboard,
+  MessageSquare,
+  Users,
+  Gift,
+  PlusCircle,
+  ClipboardList,
+  CheckCircle2,
+  Home,
+  Target,
+  User,
+} from "lucide-react";
 
 import { storageGet, storageSet, onStorageChange } from "./lib/storage.js";
 import { DB_KEY, SESSION_KEY, uid, seedDB, todayKey } from "./lib/data.js";
@@ -7,7 +19,12 @@ import { Toast } from "./components/ui.jsx";
 import AuthScreen from "./components/AuthScreen.jsx";
 import Shell from "./components/Shell.jsx";
 import { AdminDashboard, AdminUsers, AdminRewards } from "./pages/AdminPages.jsx";
-import { PetugasDashboard, QuestForm, QuestList, VerifikasiLaporan } from "./pages/PetugasPages.jsx";
+import {
+  PetugasDashboard,
+  QuestForm,
+  QuestList,
+  VerifikasiLaporan,
+} from "./pages/PetugasPages.jsx";
 import {
   WargaBeranda,
   WargaMisi,
@@ -112,7 +129,9 @@ export default function App() {
   /* ---------- shared helpers ---------- */
   const hasReportedToday = (questId, userId) => {
     const today = todayKey(Date.now());
-    return db.reports.some((r) => r.questId === questId && r.userId === userId && todayKey(r.ts) === today);
+    return db.reports.some(
+      (r) => r.questId === questId && r.userId === userId && todayKey(r.ts) === today
+    );
   };
 
   /* ---------- petugas actions ---------- */
@@ -193,12 +212,36 @@ export default function App() {
       const r = d.rewards.find((x) => x.id === rewardId);
       u.xp -= r.xpCost;
       r.stock -= 1;
-      d.redemptions.push({ id: uid("rd"), userId: u.id, rewardId: r.id, ts: Date.now(), status: "menunggu" });
+      d.redemptions.push({
+        id: uid("rd"),
+        userId: u.id,
+        rewardId: r.id,
+        ts: Date.now(),
+        status: "menunggu",
+      });
     });
     showToast("Berhasil ditukar! Ambil reward di kantor desa.");
   };
+  const sendFeedback = (text) => {
+    if (!text.trim()) return;
+    mutate((d) =>
+      d.feedback.push({
+        id: uid("f"),
+        userId: session.userId,
+        message: text.trim(),
+        ts: Date.now(),
+        status: "baru",
+      })
+    );
+    showToast("Masukan terkirim ke admin. Terima kasih!");
+  };
 
   /* ---------- admin actions ---------- */
+  const setFeedbackStatus = (id, status) =>
+    mutate((d) => {
+      const f = d.feedback.find((x) => x.id === id);
+      if (f) f.status = status;
+    });
   const deleteUser = (id) => {
     if (!window.confirm("Hapus pengguna ini?")) return;
     mutate((d) => {
@@ -280,10 +323,30 @@ export default function App() {
     const [t, s] = titles[page] || titles.dashboard;
     return (
       <>
-        <Shell brandRole="Admin" user={user} navItems={nav} page={page} setPage={setPage} onLogout={logout} title={t} subtitle={s}>
-          {page === "pengguna" && <AdminUsers db={db} deleteUser={deleteUser} addPetugas={addPetugas} />}
-          {page === "reward-admin" && <AdminRewards db={db} saveReward={saveReward} deleteReward={deleteReward} fulfillRedemption={fulfillRedemption} />}
-          {(page === "dashboard" || !["pengguna", "reward-admin"].includes(page)) && <AdminDashboard db={db} />}
+        <Shell
+          brandRole="Admin"
+          user={user}
+          navItems={nav}
+          page={page}
+          setPage={setPage}
+          onLogout={logout}
+          title={t}
+          subtitle={s}
+        >
+          {page === "pengguna" && (
+            <AdminUsers db={db} deleteUser={deleteUser} addPetugas={addPetugas} />
+          )}
+          {page === "reward-admin" && (
+            <AdminRewards
+              db={db}
+              saveReward={saveReward}
+              deleteReward={deleteReward}
+              fulfillRedemption={fulfillRedemption}
+            />
+          )}
+          {(page === "dashboard" || !["pengguna", "reward-admin"].includes(page)) && (
+            <AdminDashboard db={db} />
+          )}
         </Shell>
         <Toast message={toast} />
       </>
@@ -322,7 +385,11 @@ export default function App() {
         >
           {page === "buat-quest" && (
             <QuestForm
-              quest={editingQuestId && editingQuestId !== "new" ? db.quests.find((q) => q.id === editingQuestId) : null}
+              quest={
+                editingQuestId && editingQuestId !== "new"
+                  ? db.quests.find((q) => q.id === editingQuestId)
+                  : null
+              }
               onSave={saveQuest}
               onCancel={() => {
                 setEditingQuestId(null);
@@ -341,7 +408,10 @@ export default function App() {
             />
           )}
           {page === "verifikasi" && <VerifikasiLaporan db={db} verify={verifyReport} />}
-          {(page === "dashboard" || !["buat-quest", "daftar-quest", "verifikasi", "leaderboard-p"].includes(page)) && <PetugasDashboard db={db} />}
+          {(page === "dashboard" ||
+            !["buat-quest", "daftar-quest", "verifikasi"].includes(page)) && (
+              <PetugasDashboard db={db} />
+            )}
         </Shell>
         <Toast message={toast} />
       </>
@@ -349,8 +419,11 @@ export default function App() {
   }
 
   /* ---------- WARGA ---------- */
-  const wPage = ["beranda", "misi", "misi-detail", "reward", "profil"].includes(page) ? page : "beranda";
-  const wSelectedQuest = wPage === "misi-detail" ? db.quests.find((q) => q.id === selectedQuestId) : null;
+  const wPage = ["beranda", "misi", "misi-detail", "reward", "profil"].includes(page)
+    ? page
+    : "beranda";
+  const wSelectedQuest =
+    wPage === "misi-detail" ? db.quests.find((q) => q.id === selectedQuestId) : null;
   const wTitles = {
     beranda: [`Halo, ${user.name.split(" ")[0]} 👋`, "Terus pantau & bangun desamu."],
     misi: ["Daftar Misi", "Semua misi pemantauan yang bisa kamu ikuti"],
@@ -407,7 +480,9 @@ export default function App() {
           />
         )}
         {wPage === "reward" && <WargaReward user={user} db={db} redeem={redeemReward} />}
-        {wPage === "profil" && <WargaProfil user={user} onLogout={logout} />}
+        {wPage === "profil" && (
+          <WargaProfil user={user} onLogout={logout} sendFeedback={sendFeedback} />
+        )}
       </Shell>
       <Toast message={toast} />
     </>

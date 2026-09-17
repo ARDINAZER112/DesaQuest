@@ -20,6 +20,12 @@ npm run build
 npm run preview
 ```
 
+`npm run build` menghasilkan **satu file** `dist/index.html` yang sudah berisi
+seluruh JS & CSS ter-inline (pakai `vite-plugin-singlefile`) — file ini bisa
+langsung dibuka dengan cara diklik dua kali di browser mana pun (`file://`),
+tanpa perlu server atau koneksi internet ke aset lain. Cocok untuk dibagikan
+sebagai satu file saja layaknya halaman web biasa.
+
 ## Akun demo
 
 | Peran   | Username | Kata Sandi  |
@@ -47,8 +53,8 @@ src/
 │   └── Shell.jsx              # Layout sidebar (desktop) + hamburger (mobile), dipakai oleh Admin, Petugas & Warga
 └── pages/
     ├── AdminPages.jsx         # Dashboard, Kritik & Saran, Kelola Pengguna, Kelola Reward
-    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan, Leaderboard
-    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Peringkat, Profil — layout kartu/grid responsif
+    ├── PetugasPages.jsx       # Dashboard, Buat/Daftar Quest, Verifikasi Laporan
+    └── WargaPages.jsx         # Beranda, Misi, Detail Misi, Reward, Profil — layout kartu/grid responsif
 ```
 
 Ketiga peran (Admin, Petugas, Warga) memakai `Shell` yang sama sehingga tampilan

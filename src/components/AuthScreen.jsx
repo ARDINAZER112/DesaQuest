@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import { Eye, EyeOff, ShieldCheck, UserPlus, Loader2 } from "lucide-react";
 import { Btn, Field, inputCls } from "./ui.jsx";
 
-export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, reportCount, authError, setAuthError }) {
+export default function AuthScreen({
+  onLogin,
+  onRegister,
+  quests,
+  wargaCount,
+  reportCount,
+  authError,
+  setAuthError,
+}) {
   const [mode, setMode] = useState("login");
   const [showPw, setShowPw] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
@@ -43,10 +51,10 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 md:p-8"
+      className="min-h-screen flex items-center justify-center p-4"
       style={{ background: "linear-gradient(160deg,#2E7D32 0%,#245F27 45%,#1B4A1E 100%)" }}
     >
-      <div className="bg-white rounded-[24px] max-w-5xl w-full grid md:grid-cols-2 overflow-hidden shadow-2xl">
+      <div className="bg-white rounded-[24px] max-w-4xl w-full grid md:grid-cols-2 overflow-hidden shadow-2xl">
         {/* Hero panel — hidden on mobile */}
         <div
           className="hidden md:flex flex-col justify-between p-9 text-white"
@@ -54,15 +62,19 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
         >
           <div>
             <div className="flex items-center gap-2.5 font-bold text-[15px] mb-9">
-              <div className="w-11 h-12 rounded-xl bg-white/20 flex items-center justify-center text-lg"><img src="/assets/images/PantauDesa-Tranparan.png" /></div>
-              PantauDesa
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">
+                <img src="/assets/images/PantauDesa-Tranparan.png" alt="" />
+              </div>
+              DesaQuest
             </div>
             <h1 className="text-[28px] leading-tight font-bold mb-3">
-              Mari bersama<br />membangun desa.
+              Pantau Desa,
+              <br />
+              Bangun Bersama.
             </h1>
             <p className="text-[14px] leading-relaxed opacity-90">
-              PantauDesa adalah platform untuk membangun desa bersama. Petugas membuat quest pembangunan, warga memantau langsung di lapangan lewat foto & GPS, lalu
-              mengumpulkan XP untuk ditukarkan ke reward nyata.
+              Petugas membuat quest pembangunan, warga memantau langsung di lapangan lewat foto &
+              GPS, lalu mengumpulkan XP untuk ditukar reward nyata.
             </p>
           </div>
           <div className="flex gap-3 flex-wrap mt-6">
@@ -84,17 +96,21 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
         {/* Form panel */}
         <div className="p-7 sm:p-9">
           <div className="flex items-center gap-2 font-bold text-green-700 mb-1 md:hidden">
-            <span className="w-11 h-12 rounded-xl bg-white/20 flex items-center justify-center text-lg"><img src="/assets/images/PantauDesa-Tranparan.png" /></span> PantauDesa
+            <span className="text-lg">🏡</span> DesaQuest
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-1">
             {mode === "login" ? "Masuk ke Akun" : "Daftar sebagai Warga"}
           </h2>
           <p className="text-[13px] text-slate-400 mb-5">
-            {mode === "login" ? "Gunakan akun admin, petugas, atau warga untuk masuk." : "Ikuti quest pembangunan desa & kumpulkan XP."}
+            {mode === "login"
+              ? "Gunakan akun admin, petugas, atau warga untuk masuk."
+              : "Ikuti quest pembangunan desa & kumpulkan XP."}
           </p>
 
           {authError && (
-            <div className="bg-red-50 text-red-600 text-[13px] font-medium rounded-lg px-3.5 py-2.5 mb-4">{authError}</div>
+            <div className="bg-red-50 text-red-600 text-[13px] font-medium rounded-lg px-3.5 py-2.5 mb-4">
+              {authError}
+            </div>
           )}
 
           {mode === "login" ? (
@@ -104,7 +120,7 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
                   className={inputCls}
                   value={login.username}
                   onChange={(e) => setLogin({ ...login, username: e.target.value })}
-                  placeholder="Nama Anda"
+                  placeholder="mis. admin"
                 />
               </Field>
               <Field label="Kata Sandi">
@@ -127,7 +143,8 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
                 </div>
               </Field>
               <Btn variant="green" className="w-full mt-1" onClick={submitLogin} disabled={busy}>
-                {busy ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />} Masuk
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}{" "}
+                Masuk
               </Btn>
 
               <button
@@ -138,9 +155,15 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
               </button>
               {showDemo && (
                 <div className="mt-2.5 bg-slate-50 rounded-lg p-3 text-[12px] text-slate-500 space-y-1">
-                  <div><b>Admin</b> — admin / admin123</div>
-                  <div><b>Petugas</b> — rudi / petugas123</div>
-                  <div><b>Warga</b> — budi / warga123</div>
+                  <div>
+                    <b>Admin</b> — admin / admin123
+                  </div>
+                  <div>
+                    <b>Petugas</b> — rudi / petugas123
+                  </div>
+                  <div>
+                    <b>Warga</b> — budi / warga123
+                  </div>
                 </div>
               )}
 
@@ -160,21 +183,44 @@ export default function AuthScreen({ onLogin, onRegister, quests, wargaCount, re
           ) : (
             <>
               <Field label="Nama Lengkap">
-                <input className={inputCls} value={reg.name} onChange={(e) => setReg({ ...reg, name: e.target.value })} placeholder="Nama sesuai KTP" />
+                <input
+                  className={inputCls}
+                  value={reg.name}
+                  onChange={(e) => setReg({ ...reg, name: e.target.value })}
+                  placeholder="Nama sesuai KTP"
+                />
               </Field>
               <Field label="Username">
-                <input className={inputCls} value={reg.username} onChange={(e) => setReg({ ...reg, username: e.target.value })} placeholder="Buat username unik" />
+                <input
+                  className={inputCls}
+                  value={reg.username}
+                  onChange={(e) => setReg({ ...reg, username: e.target.value })}
+                  placeholder="Buat username unik"
+                />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Kata Sandi">
-                  <input className={inputCls} type="password" value={reg.password} onChange={(e) => setReg({ ...reg, password: e.target.value })} placeholder="Min. 6 karakter" />
+                  <input
+                    className={inputCls}
+                    type="password"
+                    value={reg.password}
+                    onChange={(e) => setReg({ ...reg, password: e.target.value })}
+                    placeholder="Min. 6 karakter"
+                  />
                 </Field>
                 <Field label="Konfirmasi">
-                  <input className={inputCls} type="password" value={reg.confirm} onChange={(e) => setReg({ ...reg, confirm: e.target.value })} placeholder="Ulangi sandi" />
+                  <input
+                    className={inputCls}
+                    type="password"
+                    value={reg.confirm}
+                    onChange={(e) => setReg({ ...reg, confirm: e.target.value })}
+                    placeholder="Ulangi sandi"
+                  />
                 </Field>
               </div>
               <Btn variant="green" className="w-full mt-1" onClick={submitRegister} disabled={busy}>
-                {busy ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />} Daftar sebagai Warga
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}{" "}
+                Daftar sebagai Warga
               </Btn>
               <div className="text-center text-[13px] text-slate-500 mt-6 pt-5 border-t border-slate-100">
                 Sudah punya akun?{" "}

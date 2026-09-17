@@ -1,19 +1,41 @@
 import React, { useState } from "react";
-import { Target, Camera, Users, Star, ClipboardList, PlusCircle, Pencil, Trash2, MapPin, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Target,
+  Camera,
+  Users,
+  Star,
+  ClipboardList,
+  PlusCircle,
+  Pencil,
+  Trash2,
+  MapPin,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { Panel, StatCard, Empty, Tag, Btn, Field, inputCls } from "../components/ui.jsx";
 import { fmtDate } from "../lib/data.js";
 
 export function PetugasDashboard({ db }) {
   const activeQuests = db.quests.filter((q) => q.status === "aktif");
   const pending = db.reports.filter((r) => r.status === "pending").length;
-  const totalXP = db.reports.filter((r) => r.status === "approved").reduce((s, r) => s + (r.xpAwarded || 0), 0);
+  const totalXP = db.reports
+    .filter((r) => r.status === "approved")
+    .reduce((s, r) => s + (r.xpAwarded || 0), 0);
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-2">
         <StatCard icon={<Target size={16} />} value={activeQuests.length} label="Quest Aktif" />
         <StatCard icon={<Camera size={16} />} value={db.reports.length} label="Total Laporan" />
-        <StatCard icon={<Users size={16} />} value={new Set(db.reports.map((r) => r.userId)).size} label="Warga Aktif" />
-        <StatCard icon={<Star size={16} />} value={totalXP.toLocaleString("id-ID")} label="XP Diberikan" />
+        <StatCard
+          icon={<Users size={16} />}
+          value={new Set(db.reports.map((r) => r.userId)).size}
+          label="Warga Aktif"
+        />
+        <StatCard
+          icon={<Star size={16} />}
+          value={totalXP.toLocaleString("id-ID")}
+          label="XP Diberikan"
+        />
         <StatCard icon={<ClipboardList size={16} />} value={pending} label="Perlu Verifikasi" />
       </div>
       <Panel title="Quest Aktif Terbaru">
@@ -25,15 +47,24 @@ export function PetugasDashboard({ db }) {
             const approved = reports.filter((r) => r.status === "approved").length;
             const pct = Math.min(100, Math.round((approved / 10) * 100));
             return (
-              <div key={q.id} className="flex items-center gap-3.5 py-3 border-b border-slate-50 last:border-0">
-                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg flex-shrink-0">{q.icon}</div>
+              <div
+                key={q.id}
+                className="flex items-center gap-3.5 py-3 border-b border-slate-50 last:border-0"
+              >
+                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg flex-shrink-0">
+                  {q.icon}
+                </div>
                 <div className="flex-1 min-w-0">
                   <b className="text-[13.5px] block">{q.title}</b>
                   <div className="text-[11.5px] text-slate-400 mb-1.5">
-                    {reports.length} laporan · {reports.filter((r) => r.status === "pending").length} menunggu
+                    {reports.length} laporan ·{" "}
+                    {reports.filter((r) => r.status === "pending").length} menunggu
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-600 rounded-full" style={{ width: pct + "%" }} />
+                    <div
+                      className="h-full bg-green-600 rounded-full"
+                      style={{ width: pct + "%" }}
+                    />
                   </div>
                 </div>
               </div>
@@ -49,19 +80,39 @@ export function QuestForm({ quest, onSave, onCancel }) {
   const [f, setF] = useState(
     quest
       ? { ...quest, lat: quest.loc.lat, lng: quest.loc.lng }
-      : { title: "", desc: "", category: "Jalan", status: "aktif", xpBase: 100, xpBonus: 20, start: "", end: "", lat: "", lng: "", radius: 100 }
+      : {
+          title: "",
+          desc: "",
+          category: "Jalan",
+          status: "aktif",
+          xpBase: 100,
+          xpBonus: 20,
+          start: "",
+          end: "",
+          lat: "",
+          lng: "",
+          radius: 100,
+        }
   );
   const set = (k, v) => setF({ ...f, [k]: v });
   const grabLocation = () => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setF((prev) => ({ ...prev, lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) })),
-      () => { }
+      (pos) =>
+        setF((prev) => ({
+          ...prev,
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+        })),
+      () => {}
     );
   };
   const submit = () => {
     if (!f.title.trim() || f.lat === "" || f.lng === "") return;
-    const icon = { Jalan: "🛣️", Drainase: "💧", Jembatan: "🌉", "Fasilitas Umum": "🏛️", Lainnya: "🚧" }[f.category] || "🚧";
+    const icon =
+      { Jalan: "🛣️", Drainase: "💧", Jembatan: "🌉", "Fasilitas Umum": "🏛️", Lainnya: "🚧" }[
+        f.category
+      ] || "🚧";
     onSave({
       id: quest?.id,
       title: f.title.trim(),
@@ -80,7 +131,12 @@ export function QuestForm({ quest, onSave, onCancel }) {
   return (
     <Panel title={quest ? "Edit Quest" : "Buat Quest Baru"}>
       <Field label="Judul Quest">
-        <input className={inputCls} placeholder="Contoh: Pembangunan Gorong-gorong RT 04" value={f.title} onChange={(e) => set("title", e.target.value)} />
+        <input
+          className={inputCls}
+          placeholder="Contoh: Pembangunan Gorong-gorong RT 04"
+          value={f.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
       </Field>
       <Field label="Deskripsi">
         <textarea
@@ -93,14 +149,22 @@ export function QuestForm({ quest, onSave, onCancel }) {
       </Field>
       <div className="grid sm:grid-cols-2 gap-3.5">
         <Field label="Kategori Pembangunan">
-          <select className={inputCls} value={f.category} onChange={(e) => set("category", e.target.value)}>
+          <select
+            className={inputCls}
+            value={f.category}
+            onChange={(e) => set("category", e.target.value)}
+          >
             {["Jalan", "Drainase", "Jembatan", "Fasilitas Umum", "Lainnya"].map((c) => (
               <option key={c}>{c}</option>
             ))}
           </select>
         </Field>
         <Field label="Status">
-          <select className={inputCls} value={f.status} onChange={(e) => set("status", e.target.value)}>
+          <select
+            className={inputCls}
+            value={f.status}
+            onChange={(e) => set("status", e.target.value)}
+          >
             <option value="draft">Draft</option>
             <option value="aktif">Aktif</option>
             <option value="selesai">Selesai</option>
@@ -109,24 +173,54 @@ export function QuestForm({ quest, onSave, onCancel }) {
       </div>
       <div className="grid sm:grid-cols-2 gap-3.5">
         <Field label="Poin XP per Laporan">
-          <input type="number" className={inputCls} value={f.xpBase} onChange={(e) => set("xpBase", e.target.value)} />
+          <input
+            type="number"
+            className={inputCls}
+            value={f.xpBase}
+            onChange={(e) => set("xpBase", e.target.value)}
+          />
         </Field>
         <Field label="Poin Bonus (opsional)">
-          <input type="number" className={inputCls} value={f.xpBonus} onChange={(e) => set("xpBonus", e.target.value)} />
+          <input
+            type="number"
+            className={inputCls}
+            value={f.xpBonus}
+            onChange={(e) => set("xpBonus", e.target.value)}
+          />
         </Field>
       </div>
       <div className="grid sm:grid-cols-2 gap-3.5">
         <Field label="Periode Mulai">
-          <input type="date" className={inputCls} value={f.start} onChange={(e) => set("start", e.target.value)} />
+          <input
+            type="date"
+            className={inputCls}
+            value={f.start}
+            onChange={(e) => set("start", e.target.value)}
+          />
         </Field>
         <Field label="Periode Selesai">
-          <input type="date" className={inputCls} value={f.end} onChange={(e) => set("end", e.target.value)} />
+          <input
+            type="date"
+            className={inputCls}
+            value={f.end}
+            onChange={(e) => set("end", e.target.value)}
+          />
         </Field>
       </div>
       <Field label="Lokasi & Radius">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input className={inputCls} placeholder="Latitude" value={f.lat} onChange={(e) => set("lat", e.target.value)} />
-          <input className={inputCls} placeholder="Longitude" value={f.lng} onChange={(e) => set("lng", e.target.value)} />
+          <input
+            className={inputCls}
+            placeholder="Latitude"
+            value={f.lat}
+            onChange={(e) => set("lat", e.target.value)}
+          />
+          <input
+            className={inputCls}
+            placeholder="Longitude"
+            value={f.lng}
+            onChange={(e) => set("lng", e.target.value)}
+          />
         </div>
         <div className="flex items-center gap-2.5 mt-2.5">
           <Btn size="sm" variant="outline" onClick={grabLocation}>
@@ -136,8 +230,17 @@ export function QuestForm({ quest, onSave, onCancel }) {
           <small className="text-xs text-slate-400">atau isi koordinat manual</small>
         </div>
         <div className="mt-3">
-          <label className="block text-xs font-semibold text-slate-500 mb-1.5">Radius Toleransi (meter)</label>
-          <input type="number" min={10} max={500} className={inputCls} value={f.radius} onChange={(e) => set("radius", e.target.value)} />
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+            Radius Toleransi (meter)
+          </label>
+          <input
+            type="number"
+            min={10}
+            max={500}
+            className={inputCls}
+            value={f.radius}
+            onChange={(e) => set("radius", e.target.value)}
+          />
         </div>
         <small className="block mt-1.5 text-xs text-slate-400">
           Warga hanya bisa mengirim laporan jika berada dalam radius ini dari lokasi proyek.
@@ -181,13 +284,23 @@ export function QuestList({ db, onEdit, onDelete }) {
           <tbody>
             {db.quests.map((q) => (
               <tr key={q.id} className="border-b border-slate-50 last:border-0">
-                <td className="py-2.5 pr-3">{q.icon} {q.title}</td>
                 <td className="py-2.5 pr-3">
-                  <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">{q.category}</span>
+                  {q.icon} {q.title}
                 </td>
-                <td className="py-2.5 pr-3 text-[12px] text-slate-500">{q.start} – {q.end}</td>
-                <td className="py-2.5 pr-3"><Tag status={q.status} /></td>
-                <td className="py-2.5 pr-3">{db.reports.filter((r) => r.questId === q.id).length}</td>
+                <td className="py-2.5 pr-3">
+                  <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                    {q.category}
+                  </span>
+                </td>
+                <td className="py-2.5 pr-3 text-[12px] text-slate-500">
+                  {q.start} – {q.end}
+                </td>
+                <td className="py-2.5 pr-3">
+                  <Tag status={q.status} />
+                </td>
+                <td className="py-2.5 pr-3">
+                  {db.reports.filter((r) => r.questId === q.id).length}
+                </td>
                 <td className="py-2.5 flex gap-2">
                   <Btn size="sm" variant="outline" onClick={() => onEdit(q.id)}>
                     <Pencil size={13} />
@@ -208,7 +321,10 @@ export function QuestList({ db, onEdit, onDelete }) {
 export function VerifikasiLaporan({ db, verify }) {
   const [xpVals, setXpVals] = useState({});
   const pend = db.reports.filter((r) => r.status === "pending").sort((a, b) => a.ts - b.ts);
-  const done = db.reports.filter((r) => r.status !== "pending").sort((a, b) => b.ts - a.ts).slice(0, 15);
+  const done = db.reports
+    .filter((r) => r.status !== "pending")
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 15);
   return (
     <>
       <Panel title={`Menunggu Verifikasi (${pend.length})`}>
@@ -220,7 +336,10 @@ export function VerifikasiLaporan({ db, verify }) {
               u = db.users.find((x) => x.id === r.userId);
             const valid = r.distance <= q.radius;
             return (
-              <div key={r.id} className="flex gap-3.5 py-3.5 border-b border-slate-50 last:border-0 flex-wrap">
+              <div
+                key={r.id}
+                className="flex gap-3.5 py-3.5 border-b border-slate-50 last:border-0 flex-wrap"
+              >
                 {r.photo ? (
                   <img src={r.photo} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
                 ) : (
@@ -229,9 +348,11 @@ export function VerifikasiLaporan({ db, verify }) {
                   </div>
                 )}
                 <div className="flex-1 min-w-[220px]">
-                  <b className="text-[13.5px]">{u ? u.name : "-"}</b> <span className="text-[12px] text-slate-400">→ {q?.title}</span>
+                  <b className="text-[13.5px]">{u ? u.name : "-"}</b>{" "}
+                  <span className="text-[12px] text-slate-400">→ {q?.title}</span>
                   <div className="text-[11.5px] text-slate-400 mt-0.5">
-                    {fmtDate(r.ts)} · {valid ? "✅" : "⚠️"} {r.distance} m dari lokasi (radius {q?.radius} m)
+                    {fmtDate(r.ts)} · {valid ? "✅" : "⚠️"} {r.distance} m dari lokasi (radius{" "}
+                    {q?.radius} m)
                   </div>
                   <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                     <input
@@ -240,7 +361,11 @@ export function VerifikasiLaporan({ db, verify }) {
                       value={xpVals[r.id] ?? q.xpBase}
                       onChange={(e) => setXpVals({ ...xpVals, [r.id]: e.target.value })}
                     />
-                    <Btn size="sm" variant="green" onClick={() => verify(r.id, "approve", xpVals[r.id] ?? q.xpBase)}>
+                    <Btn
+                      size="sm"
+                      variant="green"
+                      onClick={() => verify(r.id, "approve", xpVals[r.id] ?? q.xpBase)}
+                    >
                       <CheckCircle2 size={13} />
                       Setujui & Beri XP
                     </Btn>
@@ -276,7 +401,9 @@ export function VerifikasiLaporan({ db, verify }) {
                     <td className="py-2.5 pr-3">{u ? u.name : "-"}</td>
                     <td className="py-2.5 pr-3">{q ? q.title : "-"}</td>
                     <td className="py-2.5 pr-3">{r.distance} m</td>
-                    <td className="py-2.5 pr-3"><Tag status={r.status} /></td>
+                    <td className="py-2.5 pr-3">
+                      <Tag status={r.status} />
+                    </td>
                     <td className="py-2.5">{r.xpAwarded || 0}</td>
                   </tr>
                 );

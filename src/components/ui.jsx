@@ -13,7 +13,11 @@ export const Tag = ({ status }) => {
     selesaifb: ["bg-green-100 text-green-700", "Selesai"],
   };
   const [cls, label] = map[status] || ["bg-slate-200 text-slate-600", status];
-  return <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${cls}`}>{label}</span>;
+  return (
+    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${cls}`}>
+      {label}
+    </span>
+  );
 };
 
 export const Btn = ({ children, variant = "green", size = "md", className = "", ...props }) => {
@@ -56,7 +60,9 @@ export const Panel = ({ title, action, children, className = "" }) => (
 
 export const StatCard = ({ icon, value, label }) => (
   <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-    <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center text-green-700 mb-2.5">{icon}</div>
+    <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center text-green-700 mb-2.5">
+      {icon}
+    </div>
     <div className="text-2xl font-bold text-slate-800">{value}</div>
     <div className="text-xs text-slate-400">{label}</div>
   </div>

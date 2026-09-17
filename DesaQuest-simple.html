@@ -1,0 +1,2708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DesaQuest</title>
+
+<!-- Tailwind CSS (lewat CDN, tidak perlu proses build) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React 18 -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Babel: supaya bisa nulis JSX langsung di browser, tanpa proses build -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets='[["react", {"runtime": "classic"}]]'>
+const { useState, useEffect, useRef } = React;
+
+/* ===== Ikon sederhana (pengganti lucide-react, supaya 1 file saja) ===== */
+var ICON_PATHS = {
+  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  checkCircle2: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  xCircle: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+  loader2: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+  send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  layoutDashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  messageSquare: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  gift: '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8"/><path d="M16.5 8a2.5 2.5 0 0 0 0-5C13 3 12 8 12 8"/>',
+  plusCircle: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>',
+  clipboardList: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  menu: '<line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>',
+  shieldCheck: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>',
+  trash2: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+  building2: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+};
+
+function IconBase(props) {
+  var size = props.size || 20;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={props.className || ""}
+      dangerouslySetInnerHTML={{ __html: ICON_PATHS[props.name] }}
+    />
+  );
+}
+
+function Camera(props) { return <IconBase name="camera" {...props} />; }
+function MapPin(props) { return <IconBase name="mapPin" {...props} />; }
+function CheckCircle2(props) { return <IconBase name="checkCircle2" {...props} />; }
+function XCircle(props) { return <IconBase name="xCircle" {...props} />; }
+function Loader2(props) { return <IconBase name="loader2" {...props} />; }
+function Send(props) { return <IconBase name="send" {...props} />; }
+function Pencil(props) { return <IconBase name="pencil" {...props} />; }
+function LogOut(props) { return <IconBase name="logOut" {...props} />; }
+function Star(props) { return <IconBase name="star" {...props} />; }
+function LayoutDashboard(props) { return <IconBase name="layoutDashboard" {...props} />; }
+function MessageSquare(props) { return <IconBase name="messageSquare" {...props} />; }
+function Users(props) { return <IconBase name="users" {...props} />; }
+function Gift(props) { return <IconBase name="gift" {...props} />; }
+function PlusCircle(props) { return <IconBase name="plusCircle" {...props} />; }
+function ClipboardList(props) { return <IconBase name="clipboardList" {...props} />; }
+function Home(props) { return <IconBase name="home" {...props} />; }
+function Target(props) { return <IconBase name="target" {...props} />; }
+function User(props) { return <IconBase name="user" {...props} />; }
+function Menu(props) { return <IconBase name="menu" {...props} />; }
+function X(props) { return <IconBase name="x" {...props} />; }
+function Eye(props) { return <IconBase name="eye" {...props} />; }
+function EyeOff(props) { return <IconBase name="eyeOff" {...props} />; }
+function ShieldCheck(props) { return <IconBase name="shieldCheck" {...props} />; }
+function UserPlus(props) { return <IconBase name="userPlus" {...props} />; }
+function Trash2(props) { return <IconBase name="trash2" {...props} />; }
+function Building2(props) { return <IconBase name="building2" {...props} />; }
+function Trophy(props) { return <IconBase name="trophy" {...props} />; }
+
+
+/* ===== lib/data.js ===== */
+const DB_KEY = "desaquest_db_v1";
+const SESSION_KEY = "desaquest_session_v1";
+
+function uid(prefix) {
+  return prefix + "_" + Math.random().toString(36).slice(2, 9);
+}
+
+function seedDB() {
+  const base = { lat: -6.8974, lng: 112.0649 }; // Desa Sukamaju, Tuban (fiktif)
+  const off = (dl, dg) => ({ lat: base.lat + dl, lng: base.lng + dg });
+  const now = Date.now();
+  const days = (n) => now - n * 86400000;
+  return {
+    users: [
+      { id: "admin1", name: "Admin Desa", username: "admin", password: "admin123", role: "admin" },
+      {
+        id: "petugas1",
+        name: "Rudi Pratama",
+        username: "rudi",
+        password: "petugas123",
+        role: "petugas",
+      },
+      {
+        id: "w1",
+        name: "Budi Santoso",
+        username: "budi",
+        password: "warga123",
+        role: "warga",
+        xp: 2450,
+      },
+      {
+        id: "w2",
+        name: "Siti Aminah",
+        username: "siti",
+        password: "warga123",
+        role: "warga",
+        xp: 1980,
+      },
+      {
+        id: "w3",
+        name: "Andi Wijaya",
+        username: "andi",
+        password: "warga123",
+        role: "warga",
+        xp: 1650,
+      },
+      {
+        id: "w4",
+        name: "Rina Marlina",
+        username: "rina",
+        password: "warga123",
+        role: "warga",
+        xp: 1250,
+      },
+      {
+        id: "w5",
+        name: "Dedi Kurniawan",
+        username: "dedi",
+        password: "warga123",
+        role: "warga",
+        xp: 980,
+      },
+    ],
+    quests: [
+      {
+        id: "q1",
+        title: "Pembangunan Jalan RT 03",
+        desc: "Pantau kondisi pembangunan jalan di RT 03. Ambil foto kondisi terkini di lapangan.",
+        category: "Jalan",
+        icon: "🛣️",
+        loc: off(0, 0),
+        radius: 100,
+        xpBase: 100,
+        xpBonus: 20,
+        start: "2024-09-01",
+        end: "2024-09-30",
+        status: "aktif",
+        createdBy: "petugas1",
+      },
+      {
+        id: "q2",
+        title: "Renovasi Balai Desa",
+        desc: "Pantau progres renovasi balai desa Sukamaju.",
+        category: "Fasilitas Umum",
+        icon: "🏛️",
+        loc: off(0.003, -0.002),
+        radius: 80,
+        xpBase: 100,
+        xpBonus: 10,
+        start: "2024-09-01",
+        end: "2024-09-25",
+        status: "aktif",
+        createdBy: "petugas1",
+      },
+      {
+        id: "q3",
+        title: "Pembangunan Drainase RT 01",
+        desc: "Pantau kondisi pembangunan drainase / saluran air di RT 01.",
+        category: "Drainase",
+        icon: "💧",
+        loc: off(-0.004, 0.003),
+        radius: 100,
+        xpBase: 90,
+        xpBonus: 15,
+        start: "2024-09-01",
+        end: "2024-09-25",
+        status: "aktif",
+        createdBy: "petugas1",
+      },
+      {
+        id: "q4",
+        title: "Pembangunan Jembatan RT 02",
+        desc: "Pembangunan jembatan penghubung RT 02 telah selesai.",
+        category: "Jembatan",
+        icon: "🌉",
+        loc: off(0.006, 0.004),
+        radius: 100,
+        xpBase: 120,
+        xpBonus: 20,
+        start: "2024-08-25",
+        end: "2024-09-15",
+        status: "selesai",
+        createdBy: "petugas1",
+      },
+      {
+        id: "q5",
+        title: "Rehab Posyandu",
+        desc: "Rencana rehabilitasi gedung posyandu desa.",
+        category: "Fasilitas Umum",
+        icon: "🏥",
+        loc: off(-0.002, -0.005),
+        radius: 100,
+        xpBase: 80,
+        xpBonus: 10,
+        start: "2024-09-10",
+        end: "2024-09-20",
+        status: "draft",
+        createdBy: "petugas1",
+      },
+    ],
+    reports: [
+      {
+        id: "r1",
+        questId: "q1",
+        userId: "w1",
+        photo: null,
+        ts: days(2),
+        lat: base.lat + 0.0002,
+        lng: base.lng + 0.0001,
+        distance: 22,
+        status: "approved",
+        xpAwarded: 100,
+      },
+      {
+        id: "r2",
+        questId: "q1",
+        userId: "w2",
+        photo: null,
+        ts: days(1),
+        lat: base.lat + 0.0003,
+        lng: base.lng + 0.0002,
+        distance: 31,
+        status: "approved",
+        xpAwarded: 100,
+      },
+      {
+        id: "r3",
+        questId: "q3",
+        userId: "w3",
+        photo: null,
+        ts: days(0.4),
+        lat: base.lat - 0.0038,
+        lng: base.lng + 0.0031,
+        distance: 45,
+        status: "pending",
+        xpAwarded: 0,
+      },
+    ],
+    rewards: [
+      { id: "rw1", name: "Minyak Goreng 1 Liter", icon: "🧴", xpCost: 500, stock: 20 },
+      { id: "rw2", name: "Beras 5 Kg", icon: "🌾", xpCost: 800, stock: 15 },
+      { id: "rw3", name: "Voucher Pulsa Rp25.000", icon: "📱", xpCost: 300, stock: 30 },
+      { id: "rw4", name: "Paket Sembako", icon: "🛒", xpCost: 1200, stock: 10 },
+    ],
+    redemptions: [],
+    feedback: [
+      {
+        id: "f1",
+        userId: "w4",
+        message:
+          "Kalau bisa quest pembangunan jalan di RT 05 juga ditambahkan, jalannya rusak parah.",
+        ts: days(3),
+        status: "baru",
+      },
+    ],
+  };
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1),
+    dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function levelInfo(xp) {
+  const perLevel = 500;
+  const level = Math.floor((xp || 0) / perLevel) + 1;
+  const into = (xp || 0) % perLevel;
+  return { level, into, need: perLevel, pct: Math.round((into / perLevel) * 100) };
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts);
+  return (
+    d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) +
+    ", " +
+    d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+  );
+}
+
+function todayKey(ts) {
+  return new Date(ts).toISOString().slice(0, 10);
+}
+
+function initials(name) {
+  return (name || "?")
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+
+/* ===== lib/storage.js ===== */
+// Lapisan penyimpanan sederhana berbasis localStorage.
+// Cocok untuk prototipe/demo tanpa backend. Data hanya tersimpan di browser
+// pengguna masing-masing (tidak sinkron antar perangkat).
+// Untuk produksi sungguhan, ganti modul ini dengan panggilan API ke backend
+// asli (mis. Supabase, Firebase, atau REST API + database) agar data admin,
+// petugas, dan warga benar-benar tersimpan di server bersama.
+
+function storageGet(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    console.error("storageGet error:", e);
+    return null;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (e) {
+    console.error("storageSet error:", e);
+    return false;
+  }
+}
+
+function storageRemove(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.error("storageRemove error:", e);
+  }
+}
+
+// Memanggil callback setiap kali key berubah di TAB LAIN pada browser yang sama
+// (event 'storage' tidak terpicu di tab yang melakukan perubahan itu sendiri).
+function onStorageChange(key, callback) {
+  const handler = (e) => {
+    if (e.key === key) {
+      try {
+        callback(e.newValue ? JSON.parse(e.newValue) : null);
+      } catch (err) {
+        console.error("onStorageChange parse error:", err);
+      }
+    }
+  };
+  window.addEventListener("storage", handler);
+  return () => window.removeEventListener("storage", handler);
+}
+
+
+/* ===== components/ui.jsx ===== */
+
+const Tag = ({ status }) => {
+  const map = {
+    aktif: ["bg-green-100 text-green-700", "Aktif"],
+    selesai: ["bg-blue-100 text-blue-700", "Selesai"],
+    draft: ["bg-slate-200 text-slate-600", "Draft"],
+    pending: ["bg-yellow-100 text-yellow-800", "Menunggu"],
+    approved: ["bg-green-100 text-green-700", "Disetujui"],
+    rejected: ["bg-red-100 text-red-700", "Ditolak"],
+    baru: ["bg-yellow-100 text-yellow-800", "Baru"],
+    diproses: ["bg-blue-100 text-blue-700", "Diproses"],
+    selesaifb: ["bg-green-100 text-green-700", "Selesai"],
+  };
+  const [cls, label] = map[status] || ["bg-slate-200 text-slate-600", status];
+  return (
+    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${cls}`}>
+      {label}
+    </span>
+  );
+};
+
+const Btn = ({ children, variant = "green", size = "md", className = "", ...props }) => {
+  const base =
+    "inline-flex items-center justify-center gap-1.5 font-semibold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed";
+  const sizes = { md: "px-4 py-2.5 text-sm", sm: "px-3 py-1.5 text-xs" };
+  const variants = {
+    green: "bg-green-700 text-white hover:bg-green-800",
+    outline: "bg-white text-green-700 border border-green-700 hover:bg-green-50",
+    danger: "bg-red-50 text-red-600 hover:bg-red-100",
+  };
+  return (
+    <button className={`${base} ${sizes[size]} ${variants[variant]} ${className}`} {...props}>
+      {children}
+    </button>
+  );
+};
+
+const Field = ({ label, children }) => (
+  <div className="mb-3.5">
+    <label className="block text-xs font-semibold text-slate-500 mb-1.5">{label}</label>
+    {children}
+  </div>
+);
+
+const inputCls =
+  "w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-green-600 focus:ring-1 focus:ring-green-600";
+
+const Panel = ({ title, action, children, className = "" }) => (
+  <div className={`bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-5 ${className}`}>
+    {(title || action) && (
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+        {title && <h3 className="font-bold text-slate-800 text-[15px]">{title}</h3>}
+        {action}
+      </div>
+    )}
+    {children}
+  </div>
+);
+
+const StatCard = ({ icon, value, label }) => (
+  <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+    <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center text-green-700 mb-2.5">
+      {icon}
+    </div>
+    <div className="text-2xl font-bold text-slate-800">{value}</div>
+    <div className="text-xs text-slate-400">{label}</div>
+  </div>
+);
+
+const Empty = ({ icon, text, action }) => (
+  <div className="text-center py-10 px-4 text-slate-400">
+    <div className="text-3xl mb-2">{icon}</div>
+    <div className="text-sm">{text}</div>
+    {action}
+  </div>
+);
+
+const Toast = ({ message }) =>
+  message ? (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-3 rounded-xl text-sm shadow-xl z-50 max-w-[90vw] text-center">
+      {message}
+    </div>
+  ) : null;
+
+
+/* ===== components/AuthScreen.jsx ===== */
+
+function AuthScreen({
+  onLogin,
+  onRegister,
+  quests,
+  wargaCount,
+  reportCount,
+  authError,
+  setAuthError,
+}) {
+  const [mode, setMode] = useState("login");
+  const [showPw, setShowPw] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
+  const [login, setLogin] = useState({ username: "", password: "" });
+  const [reg, setReg] = useState({ name: "", username: "", password: "", confirm: "" });
+  const [busy, setBusy] = useState(false);
+
+  const submitLogin = async () => {
+    setAuthError("");
+    if (!login.username.trim() || !login.password) {
+      setAuthError("Isi username dan kata sandi.");
+      return;
+    }
+    setBusy(true);
+    await onLogin(login.username.trim(), login.password);
+    setBusy(false);
+  };
+
+  const submitRegister = async () => {
+    setAuthError("");
+    if (!reg.name.trim() || !reg.username.trim() || !reg.password) {
+      setAuthError("Lengkapi semua data.");
+      return;
+    }
+    if (reg.password.length < 6) {
+      setAuthError("Kata sandi minimal 6 karakter.");
+      return;
+    }
+    if (reg.password !== reg.confirm) {
+      setAuthError("Konfirmasi kata sandi tidak cocok.");
+      return;
+    }
+    setBusy(true);
+    const ok = await onRegister(reg.name.trim(), reg.username.trim(), reg.password);
+    setBusy(false);
+    if (ok) setMode("login");
+  };
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: "linear-gradient(160deg,#2E7D32 0%,#245F27 45%,#1B4A1E 100%)" }}
+    >
+      <div className="bg-white rounded-[24px] max-w-4xl w-full grid md:grid-cols-2 overflow-hidden shadow-2xl">
+        {/* Hero panel — hidden on mobile */}
+        <div
+          className="hidden md:flex flex-col justify-between p-9 text-white"
+          style={{ background: "linear-gradient(150deg,#66BB6A,#2E7D32 60%)" }}
+        >
+          <div>
+            <div className="flex items-center gap-2.5 font-bold text-[15px] mb-9">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">
+                🏡
+              </div>
+              DesaQuest
+            </div>
+            <h1 className="text-[28px] leading-tight font-bold mb-3">
+              Pantau Desa,
+              <br />
+              Bangun Bersama.
+            </h1>
+            <p className="text-[14px] leading-relaxed opacity-90">
+              Petugas membuat quest pembangunan, warga memantau langsung di lapangan lewat foto &
+              GPS, lalu mengumpulkan XP untuk ditukar reward nyata.
+            </p>
+          </div>
+          <div className="flex gap-3 flex-wrap mt-6">
+            <div className="bg-white/15 rounded-xl px-3.5 py-2.5 min-w-[92px]">
+              <b className="block text-lg">{quests.filter((q) => q.status === "aktif").length}</b>
+              <span className="text-[11px] opacity-85">Quest Aktif</span>
+            </div>
+            <div className="bg-white/15 rounded-xl px-3.5 py-2.5 min-w-[92px]">
+              <b className="block text-lg">{reportCount}</b>
+              <span className="text-[11px] opacity-85">Laporan Warga</span>
+            </div>
+            <div className="bg-white/15 rounded-xl px-3.5 py-2.5 min-w-[92px]">
+              <b className="block text-lg">{wargaCount}</b>
+              <span className="text-[11px] opacity-85">Warga Terlibat</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Form panel */}
+        <div className="p-7 sm:p-9">
+          <div className="flex items-center gap-2 font-bold text-green-700 mb-1 md:hidden">
+            <span className="text-lg">🏡</span> DesaQuest
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-1">
+            {mode === "login" ? "Masuk ke Akun" : "Daftar sebagai Warga"}
+          </h2>
+          <p className="text-[13px] text-slate-400 mb-5">
+            {mode === "login"
+              ? "Gunakan akun admin, petugas, atau warga untuk masuk."
+              : "Ikuti quest pembangunan desa & kumpulkan XP."}
+          </p>
+
+          {authError && (
+            <div className="bg-red-50 text-red-600 text-[13px] font-medium rounded-lg px-3.5 py-2.5 mb-4">
+              {authError}
+            </div>
+          )}
+
+          {mode === "login" ? (
+            <>
+              <Field label="Username">
+                <input
+                  className={inputCls}
+                  value={login.username}
+                  onChange={(e) => setLogin({ ...login, username: e.target.value })}
+                  placeholder="mis. admin"
+                />
+              </Field>
+              <Field label="Kata Sandi">
+                <div className="relative">
+                  <input
+                    className={inputCls + " pr-10"}
+                    type={showPw ? "text" : "password"}
+                    value={login.password}
+                    onChange={(e) => setLogin({ ...login, password: e.target.value })}
+                    placeholder="••••••••"
+                    onKeyDown={(e) => e.key === "Enter" && submitLogin()}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    onClick={() => setShowPw(!showPw)}
+                  >
+                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </Field>
+              <Btn variant="green" className="w-full mt-1" onClick={submitLogin} disabled={busy}>
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}{" "}
+                Masuk
+              </Btn>
+
+              <button
+                className="text-xs text-green-700 font-semibold mt-4 underline decoration-dotted"
+                onClick={() => setShowDemo(!showDemo)}
+              >
+                {showDemo ? "Sembunyikan" : "Lihat"} akun demo untuk uji coba
+              </button>
+              {showDemo && (
+                <div className="mt-2.5 bg-slate-50 rounded-lg p-3 text-[12px] text-slate-500 space-y-1">
+                  <div>
+                    <b>Admin</b> — admin / admin123
+                  </div>
+                  <div>
+                    <b>Petugas</b> — rudi / petugas123
+                  </div>
+                  <div>
+                    <b>Warga</b> — budi / warga123
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center text-[13px] text-slate-500 mt-6 pt-5 border-t border-slate-100">
+                Warga belum punya akun?{" "}
+                <button
+                  className="text-green-700 font-bold"
+                  onClick={() => {
+                    setMode("register");
+                    setAuthError("");
+                  }}
+                >
+                  Daftar di sini
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Field label="Nama Lengkap">
+                <input
+                  className={inputCls}
+                  value={reg.name}
+                  onChange={(e) => setReg({ ...reg, name: e.target.value })}
+                  placeholder="Nama sesuai KTP"
+                />
+              </Field>
+              <Field label="Username">
+                <input
+                  className={inputCls}
+                  value={reg.username}
+                  onChange={(e) => setReg({ ...reg, username: e.target.value })}
+                  placeholder="Buat username unik"
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Kata Sandi">
+                  <input
+                    className={inputCls}
+                    type="password"
+                    value={reg.password}
+                    onChange={(e) => setReg({ ...reg, password: e.target.value })}
+                    placeholder="Min. 6 karakter"
+                  />
+                </Field>
+                <Field label="Konfirmasi">
+                  <input
+                    className={inputCls}
+                    type="password"
+                    value={reg.confirm}
+                    onChange={(e) => setReg({ ...reg, confirm: e.target.value })}
+                    placeholder="Ulangi sandi"
+                  />
+                </Field>
+              </div>
+              <Btn variant="green" className="w-full mt-1" onClick={submitRegister} disabled={busy}>
+                {busy ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}{" "}
+                Daftar sebagai Warga
+              </Btn>
+              <div className="text-center text-[13px] text-slate-500 mt-6 pt-5 border-t border-slate-100">
+                Sudah punya akun?{" "}
+                <button
+                  className="text-green-700 font-bold"
+                  onClick={() => {
+                    setMode("login");
+                    setAuthError("");
+                  }}
+                >
+                  Masuk di sini
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ===== components/Shell.jsx ===== */
+
+function Shell({
+  brandRole,
+  user,
+  navItems,
+  page,
+  setPage,
+  onLogout,
+  title,
+  subtitle,
+  children,
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="min-h-screen bg-slate-50 md:flex">
+      {open && (
+        <div className="fixed inset-0 bg-black/40 z-30 md:hidden" onClick={() => setOpen(false)} />
+      )}
+      <div
+        className={`fixed md:sticky top-0 h-screen w-64 text-white flex flex-col p-4 z-40 transition-transform duration-200 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+        style={{ background: "linear-gradient(180deg,#2E7D32,#245F27)" }}
+      >
+        <div className="flex items-center justify-between mb-5 px-1">
+          <div className="flex items-center gap-2.5 font-bold text-[15px]">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+              🏡
+            </div>{" "}
+            DesaQuest
+          </div>
+          <button className="md:hidden text-white/80" onClick={() => setOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className="bg-white/10 rounded-xl px-3 py-2.5 mb-4 flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-full bg-yellow-400 text-yellow-900 flex items-center justify-center font-bold text-xs flex-shrink-0">
+            {initials(user.name)}
+          </div>
+          <div className="min-w-0">
+            <b className="block text-[13px] truncate">{user.name}</b>
+            <span className="text-[11px] opacity-75">{brandRole}</span>
+          </div>
+        </div>
+        <ul className="flex-1 space-y-1">
+          {navItems.map(([key, Icon, label]) => (
+            <li key={key}>
+              <button
+                onClick={() => {
+                  setPage(key);
+                  setOpen(false);
+                }}
+                className={`w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-lg text-[13.5px] transition ${
+                  page === key
+                    ? "bg-white text-green-700 font-bold"
+                    : "text-white/85 hover:bg-white/10"
+                }`}
+              >
+                <Icon size={16} /> {label}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-[13px] px-3 py-2.5 rounded-lg mt-2"
+        >
+          <LogOut size={15} /> Keluar
+        </button>
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="bg-white border-b border-slate-200 px-5 sm:px-7 py-4 flex items-center gap-3 sticky top-0 z-20">
+          <button className="md:hidden text-slate-600" onClick={() => setOpen(true)}>
+            <Menu size={22} />
+          </button>
+          <div>
+            <h2 className="font-bold text-slate-800 text-[17px] sm:text-[19px] leading-tight">
+              {title}
+            </h2>
+            <div className="text-[12px] text-slate-400">{subtitle}</div>
+          </div>
+        </div>
+        <div className="p-5 sm:p-7">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ===== pages/AdminPages.jsx ===== */
+
+
+
+
+
+
+
+
+
+
+
+function AdminDashboard({ db }) {
+  const totalWarga = db.users.filter((u) => u.role === "warga").length;
+  const totalPetugas = db.users.filter((u) => u.role === "petugas").length;
+  const totalXP = db.reports
+    .filter((r) => r.status === "approved")
+    .reduce((s, r) => s + (r.xpAwarded || 0), 0);
+  const newFb = db.feedback.filter((f) => f.status === "baru").length;
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-2">
+        <StatCard icon={<Target size={16} />} value={db.quests.length} label="Total Quest" />
+        <StatCard icon={<Users size={16} />} value={totalWarga} label="Total Warga" />
+        <StatCard icon={<Building2 size={16} />} value={totalPetugas} label="Total Petugas" />
+        <StatCard
+          icon={<Star size={16} />}
+          value={totalXP.toLocaleString("id-ID")}
+          label="XP Diberikan"
+        />
+        <StatCard icon={<Camera size={16} />} value={db.reports.length} label="Total Laporan" />
+        <StatCard icon={<MessageSquare size={16} />} value={newFb} label="Masukan Baru" />
+      </div>
+      <Panel title="Quest Terbaru">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                <th className="py-2 pr-3">Judul</th>
+                <th className="py-2 pr-3">Kategori</th>
+                <th className="py-2 pr-3">Status</th>
+                <th className="py-2">Laporan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {db.quests
+                .slice()
+                .reverse()
+                .slice(0, 5)
+                .map((q) => (
+                  <tr key={q.id} className="border-b border-slate-50 last:border-0">
+                    <td className="py-2.5 pr-3">
+                      {q.icon} {q.title}
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                        {q.category}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-3">
+                      <Tag status={q.status} />
+                    </td>
+                    <td className="py-2.5">
+                      {db.reports.filter((r) => r.questId === q.id).length}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function AdminFeedback({ db, setStatus }) {
+  const list = db.feedback.slice().reverse();
+  return (
+    <Panel title="Kritik & Saran dari Warga">
+      {list.length === 0 ? (
+        <Empty icon="💬" text="Belum ada masukan masuk." />
+      ) : (
+        list.map((f) => {
+          const u = db.users.find((x) => x.id === f.userId);
+          return (
+            <div key={f.id} className="border border-slate-100 rounded-xl p-4 mb-3 last:mb-0">
+              <div className="flex justify-between items-start gap-3 flex-wrap">
+                <div>
+                  <b className="text-[13.5px]">{u ? u.name : "Warga"}</b>
+                  <div className="text-[11px] text-slate-400">{fmtDate(f.ts)}</div>
+                </div>
+                <Tag status={f.status} />
+              </div>
+              <p className="text-[13px] my-2.5 text-slate-600">{f.message}</p>
+              <div className="flex gap-2">
+                <Btn size="sm" variant="outline" onClick={() => setStatus(f.id, "diproses")}>
+                  Tandai Diproses
+                </Btn>
+                <Btn size="sm" variant="green" onClick={() => setStatus(f.id, "selesaifb")}>
+                  Tandai Selesai
+                </Btn>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </Panel>
+  );
+}
+
+function AdminUsers({ db, deleteUser, addPetugas }) {
+  const [form, setForm] = useState({ name: "", username: "", password: "" });
+  const [showForm, setShowForm] = useState(false);
+  const submit = () => {
+    if (!form.name.trim() || !form.username.trim() || !form.password) return;
+    addPetugas(form.name.trim(), form.username.trim(), form.password);
+    setForm({ name: "", username: "", password: "" });
+    setShowForm(false);
+  };
+  return (
+    <>
+      <Panel
+        title="Tambah Akun Petugas"
+        action={
+          <Btn size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
+            <PlusCircle size={14} />
+            {showForm ? "Tutup" : "Tambah Petugas"}
+          </Btn>
+        }
+      >
+        {showForm ? (
+          <div className="grid sm:grid-cols-3 gap-3 items-end">
+            <Field label="Nama">
+              <input
+                className={inputCls}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </Field>
+            <Field label="Username">
+              <input
+                className={inputCls}
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+              />
+            </Field>
+            <Field label="Kata Sandi">
+              <input
+                className={inputCls}
+                type="text"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+              />
+            </Field>
+            <Btn variant="green" className="sm:col-span-3" onClick={submit}>
+              Simpan Petugas Baru
+            </Btn>
+          </div>
+        ) : (
+          <p className="text-[13px] text-slate-400">
+            Buat akun login untuk petugas desa baru yang akan mengelola quest.
+          </p>
+        )}
+      </Panel>
+      <Panel title="Kelola Pengguna">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                <th className="py-2 pr-3">Nama</th>
+                <th className="py-2 pr-3">Username</th>
+                <th className="py-2 pr-3">Peran</th>
+                <th className="py-2 pr-3">XP</th>
+                <th className="py-2">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {db.users.map((u) => (
+                <tr key={u.id} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 pr-3">{u.name}</td>
+                  <td className="py-2.5 pr-3 text-slate-400">@{u.username}</td>
+                  <td className="py-2.5 pr-3 capitalize">{u.role}</td>
+                  <td className="py-2.5 pr-3">
+                    {u.role === "warga" ? (u.xp || 0).toLocaleString("id-ID") : "—"}
+                  </td>
+                  <td className="py-2.5">
+                    {u.role !== "admin" && (
+                      <Btn size="sm" variant="danger" onClick={() => deleteUser(u.id)}>
+                        <Trash2 size={13} />
+                        Hapus
+                      </Btn>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function AdminRewards({ db, saveReward, deleteReward, fulfillRedemption }) {
+  const [editing, setEditing] = useState(null); // null | 'new' | id
+  const [form, setForm] = useState({ name: "", icon: "🎁", xpCost: 500, stock: 10 });
+  const openForm = (rw) => {
+    if (rw) {
+      setForm({ name: rw.name, icon: rw.icon, xpCost: rw.xpCost, stock: rw.stock });
+      setEditing(rw.id);
+    } else {
+      setForm({ name: "", icon: "🎁", xpCost: 500, stock: 10 });
+      setEditing("new");
+    }
+  };
+  const submit = () => {
+    if (!form.name.trim() || !form.xpCost) return;
+    saveReward(editing, {
+      ...form,
+      xpCost: parseInt(form.xpCost, 10),
+      stock: parseInt(form.stock, 10),
+    });
+    setEditing(null);
+  };
+  return (
+    <>
+      <Panel
+        title="Kelola Reward"
+        action={
+          <Btn size="sm" variant="green" onClick={() => openForm(null)}>
+            <PlusCircle size={14} />
+            Tambah Reward
+          </Btn>
+        }
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                <th className="py-2 pr-3">Reward</th>
+                <th className="py-2 pr-3">Biaya XP</th>
+                <th className="py-2 pr-3">Stok</th>
+                <th className="py-2">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {db.rewards.map((r) => (
+                <tr key={r.id} className="border-b border-slate-50 last:border-0">
+                  <td className="py-2.5 pr-3">
+                    {r.icon} {r.name}
+                  </td>
+                  <td className="py-2.5 pr-3">{r.xpCost.toLocaleString("id-ID")} XP</td>
+                  <td className="py-2.5 pr-3">{r.stock}</td>
+                  <td className="py-2.5 flex gap-2">
+                    <Btn size="sm" variant="outline" onClick={() => openForm(r)}>
+                      <Pencil size={13} />
+                    </Btn>
+                    <Btn size="sm" variant="danger" onClick={() => deleteReward(r.id)}>
+                      <Trash2 size={13} />
+                    </Btn>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+
+      {editing && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50"
+          onClick={(e) => e.target === e.currentTarget && setEditing(null)}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+            <h3 className="font-bold text-slate-800 mb-4">
+              {editing === "new" ? "Tambah" : "Edit"} Reward
+            </h3>
+            <Field label="Nama Reward">
+              <input
+                className={inputCls}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </Field>
+            <Field label="Emoji Ikon">
+              <input
+                className={inputCls}
+                value={form.icon}
+                onChange={(e) => setForm({ ...form, icon: e.target.value })}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Biaya XP">
+                <input
+                  type="number"
+                  className={inputCls}
+                  value={form.xpCost}
+                  onChange={(e) => setForm({ ...form, xpCost: e.target.value })}
+                />
+              </Field>
+              <Field label="Stok">
+                <input
+                  type="number"
+                  className={inputCls}
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                />
+              </Field>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <Btn variant="outline" className="flex-1" onClick={() => setEditing(null)}>
+                Batal
+              </Btn>
+              <Btn variant="green" className="flex-1" onClick={submit}>
+                Simpan
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Panel title="Riwayat Penukaran Reward">
+        {db.redemptions.length === 0 ? (
+          <Empty icon="🎁" text="Belum ada penukaran reward." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                  <th className="py-2 pr-3">Warga</th>
+                  <th className="py-2 pr-3">Reward</th>
+                  <th className="py-2 pr-3">Tanggal</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {db.redemptions
+                  .slice()
+                  .reverse()
+                  .map((rd) => {
+                    const u = db.users.find((x) => x.id === rd.userId),
+                      r = db.rewards.find((x) => x.id === rd.rewardId);
+                    return (
+                      <tr key={rd.id} className="border-b border-slate-50 last:border-0">
+                        <td className="py-2.5 pr-3">{u ? u.name : "-"}</td>
+                        <td className="py-2.5 pr-3">{r ? `${r.icon} ${r.name}` : "-"}</td>
+                        <td className="py-2.5 pr-3">{fmtDate(rd.ts)}</td>
+                        <td className="py-2.5 pr-3">
+                          <Tag status={rd.status === "diambil" ? "approved" : "pending"} />
+                        </td>
+                        <td className="py-2.5">
+                          {rd.status !== "diambil" && (
+                            <Btn size="sm" variant="green" onClick={() => fulfillRedemption(rd.id)}>
+                              Tandai Diambil
+                            </Btn>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+    </>
+  );
+}
+
+
+/* ===== pages/PetugasPages.jsx ===== */
+
+
+
+
+
+
+
+
+
+
+
+
+
+function PetugasDashboard({ db }) {
+  const activeQuests = db.quests.filter((q) => q.status === "aktif");
+  const pending = db.reports.filter((r) => r.status === "pending").length;
+  const totalXP = db.reports
+    .filter((r) => r.status === "approved")
+    .reduce((s, r) => s + (r.xpAwarded || 0), 0);
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-2">
+        <StatCard icon={<Target size={16} />} value={activeQuests.length} label="Quest Aktif" />
+        <StatCard icon={<Camera size={16} />} value={db.reports.length} label="Total Laporan" />
+        <StatCard
+          icon={<Users size={16} />}
+          value={new Set(db.reports.map((r) => r.userId)).size}
+          label="Warga Aktif"
+        />
+        <StatCard
+          icon={<Star size={16} />}
+          value={totalXP.toLocaleString("id-ID")}
+          label="XP Diberikan"
+        />
+        <StatCard icon={<ClipboardList size={16} />} value={pending} label="Perlu Verifikasi" />
+      </div>
+      <Panel title="Quest Aktif Terbaru">
+        {activeQuests.length === 0 ? (
+          <Empty icon="🎯" text="Belum ada quest aktif." />
+        ) : (
+          activeQuests.map((q) => {
+            const reports = db.reports.filter((r) => r.questId === q.id);
+            const approved = reports.filter((r) => r.status === "approved").length;
+            const pct = Math.min(100, Math.round((approved / 10) * 100));
+            return (
+              <div
+                key={q.id}
+                className="flex items-center gap-3.5 py-3 border-b border-slate-50 last:border-0"
+              >
+                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-lg flex-shrink-0">
+                  {q.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <b className="text-[13.5px] block">{q.title}</b>
+                  <div className="text-[11.5px] text-slate-400 mb-1.5">
+                    {reports.length} laporan ·{" "}
+                    {reports.filter((r) => r.status === "pending").length} menunggu
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-600 rounded-full"
+                      style={{ width: pct + "%" }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </Panel>
+    </>
+  );
+}
+
+function QuestForm({ quest, onSave, onCancel }) {
+  const [f, setF] = useState(
+    quest
+      ? { ...quest, lat: quest.loc.lat, lng: quest.loc.lng }
+      : {
+          title: "",
+          desc: "",
+          category: "Jalan",
+          status: "aktif",
+          xpBase: 100,
+          xpBonus: 20,
+          start: "",
+          end: "",
+          lat: "",
+          lng: "",
+          radius: 100,
+        }
+  );
+  const set = (k, v) => setF({ ...f, [k]: v });
+  const grabLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setF((prev) => ({
+          ...prev,
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+        })),
+      () => {}
+    );
+  };
+  const submit = () => {
+    if (!f.title.trim() || f.lat === "" || f.lng === "") return;
+    const icon =
+      { Jalan: "🛣️", Drainase: "💧", Jembatan: "🌉", "Fasilitas Umum": "🏛️", Lainnya: "🚧" }[
+        f.category
+      ] || "🚧";
+    onSave({
+      id: quest?.id,
+      title: f.title.trim(),
+      desc: f.desc.trim(),
+      category: f.category,
+      icon,
+      loc: { lat: parseFloat(f.lat), lng: parseFloat(f.lng) },
+      radius: parseInt(f.radius, 10),
+      xpBase: parseInt(f.xpBase, 10),
+      xpBonus: parseInt(f.xpBonus || 0, 10),
+      start: f.start,
+      end: f.end,
+      status: f.status,
+    });
+  };
+  return (
+    <Panel title={quest ? "Edit Quest" : "Buat Quest Baru"}>
+      <Field label="Judul Quest">
+        <input
+          className={inputCls}
+          placeholder="Contoh: Pembangunan Gorong-gorong RT 04"
+          value={f.title}
+          onChange={(e) => set("title", e.target.value)}
+        />
+      </Field>
+      <Field label="Deskripsi">
+        <textarea
+          className={inputCls}
+          rows={3}
+          placeholder="Jelaskan tugas pemantauan yang harus dilakukan warga..."
+          value={f.desc}
+          onChange={(e) => set("desc", e.target.value)}
+        />
+      </Field>
+      <div className="grid sm:grid-cols-2 gap-3.5">
+        <Field label="Kategori Pembangunan">
+          <select
+            className={inputCls}
+            value={f.category}
+            onChange={(e) => set("category", e.target.value)}
+          >
+            {["Jalan", "Drainase", "Jembatan", "Fasilitas Umum", "Lainnya"].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Status">
+          <select
+            className={inputCls}
+            value={f.status}
+            onChange={(e) => set("status", e.target.value)}
+          >
+            <option value="draft">Draft</option>
+            <option value="aktif">Aktif</option>
+            <option value="selesai">Selesai</option>
+          </select>
+        </Field>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3.5">
+        <Field label="Poin XP per Laporan">
+          <input
+            type="number"
+            className={inputCls}
+            value={f.xpBase}
+            onChange={(e) => set("xpBase", e.target.value)}
+          />
+        </Field>
+        <Field label="Poin Bonus (opsional)">
+          <input
+            type="number"
+            className={inputCls}
+            value={f.xpBonus}
+            onChange={(e) => set("xpBonus", e.target.value)}
+          />
+        </Field>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3.5">
+        <Field label="Periode Mulai">
+          <input
+            type="date"
+            className={inputCls}
+            value={f.start}
+            onChange={(e) => set("start", e.target.value)}
+          />
+        </Field>
+        <Field label="Periode Selesai">
+          <input
+            type="date"
+            className={inputCls}
+            value={f.end}
+            onChange={(e) => set("end", e.target.value)}
+          />
+        </Field>
+      </div>
+      <Field label="Lokasi & Radius">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <input
+            className={inputCls}
+            placeholder="Latitude"
+            value={f.lat}
+            onChange={(e) => set("lat", e.target.value)}
+          />
+          <input
+            className={inputCls}
+            placeholder="Longitude"
+            value={f.lng}
+            onChange={(e) => set("lng", e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2.5 mt-2.5">
+          <Btn size="sm" variant="outline" onClick={grabLocation}>
+            <MapPin size={13} />
+            Gunakan Lokasi Saat Ini
+          </Btn>
+          <small className="text-xs text-slate-400">atau isi koordinat manual</small>
+        </div>
+        <div className="mt-3">
+          <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+            Radius Toleransi (meter)
+          </label>
+          <input
+            type="number"
+            min={10}
+            max={500}
+            className={inputCls}
+            value={f.radius}
+            onChange={(e) => set("radius", e.target.value)}
+          />
+        </div>
+        <small className="block mt-1.5 text-xs text-slate-400">
+          Warga hanya bisa mengirim laporan jika berada dalam radius ini dari lokasi proyek.
+        </small>
+      </Field>
+      <div className="flex gap-2.5 mt-2">
+        <Btn variant="outline" className="flex-1" onClick={onCancel}>
+          Batal
+        </Btn>
+        <Btn variant="green" className="flex-1" onClick={submit}>
+          Simpan Quest
+        </Btn>
+      </div>
+    </Panel>
+  );
+}
+
+function QuestList({ db, onEdit, onDelete }) {
+  return (
+    <Panel
+      title="Daftar Quest"
+      action={
+        <Btn size="sm" variant="green" onClick={() => onEdit("new")}>
+          <PlusCircle size={14} />
+          Buat Quest Baru
+        </Btn>
+      }
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+              <th className="py-2 pr-3">Quest</th>
+              <th className="py-2 pr-3">Kategori</th>
+              <th className="py-2 pr-3">Periode</th>
+              <th className="py-2 pr-3">Status</th>
+              <th className="py-2 pr-3">Laporan</th>
+              <th className="py-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {db.quests.map((q) => (
+              <tr key={q.id} className="border-b border-slate-50 last:border-0">
+                <td className="py-2.5 pr-3">
+                  {q.icon} {q.title}
+                </td>
+                <td className="py-2.5 pr-3">
+                  <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                    {q.category}
+                  </span>
+                </td>
+                <td className="py-2.5 pr-3 text-[12px] text-slate-500">
+                  {q.start} – {q.end}
+                </td>
+                <td className="py-2.5 pr-3">
+                  <Tag status={q.status} />
+                </td>
+                <td className="py-2.5 pr-3">
+                  {db.reports.filter((r) => r.questId === q.id).length}
+                </td>
+                <td className="py-2.5 flex gap-2">
+                  <Btn size="sm" variant="outline" onClick={() => onEdit(q.id)}>
+                    <Pencil size={13} />
+                  </Btn>
+                  <Btn size="sm" variant="danger" onClick={() => onDelete(q.id)}>
+                    <Trash2 size={13} />
+                  </Btn>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  );
+}
+
+function VerifikasiLaporan({ db, verify }) {
+  const [xpVals, setXpVals] = useState({});
+  const pend = db.reports.filter((r) => r.status === "pending").sort((a, b) => a.ts - b.ts);
+  const done = db.reports
+    .filter((r) => r.status !== "pending")
+    .sort((a, b) => b.ts - a.ts)
+    .slice(0, 15);
+  return (
+    <>
+      <Panel title={`Menunggu Verifikasi (${pend.length})`}>
+        {pend.length === 0 ? (
+          <Empty icon="✅" text="Semua laporan sudah diverifikasi." />
+        ) : (
+          pend.map((r) => {
+            const q = db.quests.find((x) => x.id === r.questId),
+              u = db.users.find((x) => x.id === r.userId);
+            const valid = r.distance <= q.radius;
+            return (
+              <div
+                key={r.id}
+                className="flex gap-3.5 py-3.5 border-b border-slate-50 last:border-0 flex-wrap"
+              >
+                {r.photo ? (
+                  <img src={r.photo} className="w-20 h-20 object-cover rounded-xl flex-shrink-0" />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                    <Camera size={20} className="text-slate-300" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-[220px]">
+                  <b className="text-[13.5px]">{u ? u.name : "-"}</b>{" "}
+                  <span className="text-[12px] text-slate-400">→ {q?.title}</span>
+                  <div className="text-[11.5px] text-slate-400 mt-0.5">
+                    {fmtDate(r.ts)} · {valid ? "✅" : "⚠️"} {r.distance} m dari lokasi (radius{" "}
+                    {q?.radius} m)
+                  </div>
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                    <input
+                      type="number"
+                      className="w-20 px-2 py-1.5 border border-slate-200 rounded-lg text-xs"
+                      value={xpVals[r.id] ?? q.xpBase}
+                      onChange={(e) => setXpVals({ ...xpVals, [r.id]: e.target.value })}
+                    />
+                    <Btn
+                      size="sm"
+                      variant="green"
+                      onClick={() => verify(r.id, "approve", xpVals[r.id] ?? q.xpBase)}
+                    >
+                      <CheckCircle2 size={13} />
+                      Setujui & Beri XP
+                    </Btn>
+                    <Btn size="sm" variant="danger" onClick={() => verify(r.id, "reject")}>
+                      <XCircle size={13} />
+                      Tolak
+                    </Btn>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </Panel>
+      <Panel title="Riwayat Verifikasi">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead>
+              <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                <th className="py-2 pr-3">Warga</th>
+                <th className="py-2 pr-3">Quest</th>
+                <th className="py-2 pr-3">Jarak</th>
+                <th className="py-2 pr-3">Status</th>
+                <th className="py-2">XP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {done.map((r) => {
+                const q = db.quests.find((x) => x.id === r.questId),
+                  u = db.users.find((x) => x.id === r.userId);
+                return (
+                  <tr key={r.id} className="border-b border-slate-50 last:border-0">
+                    <td className="py-2.5 pr-3">{u ? u.name : "-"}</td>
+                    <td className="py-2.5 pr-3">{q ? q.title : "-"}</td>
+                    <td className="py-2.5 pr-3">{r.distance} m</td>
+                    <td className="py-2.5 pr-3">
+                      <Tag status={r.status} />
+                    </td>
+                    <td className="py-2.5">{r.xpAwarded || 0}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+
+/* ===== pages/WargaPages.jsx ===== */
+
+
+
+
+
+
+
+
+
+
+
+
+
+function QuestCard({ q, extra, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex gap-3 items-start ${onClick ? "cursor-pointer hover:border-green-200" : ""}`}
+    >
+      <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-xl flex-shrink-0">
+        {q.icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <b className="text-[13.5px] block">{q.title}</b>
+        <span className="text-[11.5px] text-slate-400">{extra.top}</span>
+        <div className="inline-block bg-yellow-50 text-yellow-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full mt-1.5">
+          {extra.badge}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WargaBeranda({ user, db, openQuest, hasReportedToday }) {
+  const lvl = levelInfo(user.xp);
+  const myReports = db.reports.filter((r) => r.userId === user.id).sort((a, b) => b.ts - a.ts);
+  const activeWithProgress = db.quests.filter(
+    (q) => q.status === "aktif" && myReports.some((r) => r.questId === q.id)
+  );
+  return (
+    <>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-2">
+        <StatCard
+          icon={<Star size={16} />}
+          value={(user.xp || 0).toLocaleString("id-ID")}
+          label="XP Kamu"
+        />
+        <StatCard icon={<Trophy size={16} />} value={lvl.level} label="Level" />
+        <StatCard
+          icon={<Target size={16} />}
+          value={activeWithProgress.length}
+          label="Misi Diikuti"
+        />
+        <StatCard
+          icon={<CheckCircle2 size={16} />}
+          value={myReports.filter((r) => r.status === "approved").length}
+          label="Laporan Disetujui"
+        />
+      </div>
+
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-5">
+        <div className="flex justify-between items-baseline mb-2">
+          <b className="text-2xl text-green-700">{(user.xp || 0).toLocaleString("id-ID")} XP</b>
+          <span className="bg-green-50 text-green-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+            Level {lvl.level}
+          </span>
+        </div>
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden max-w-md">
+          <div className="h-full bg-green-600 rounded-full" style={{ width: lvl.pct + "%" }} />
+        </div>
+        <small className="text-[11px] text-slate-400">
+          {lvl.need - lvl.into} XP lagi menuju Level {lvl.level + 1}
+        </small>
+      </div>
+
+      <Panel title="Misi Aktif Kamu">
+        {activeWithProgress.length === 0 ? (
+          <Empty icon="🎯" text="Kamu belum ikut misi apa pun." />
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {activeWithProgress.map((q) => {
+              const myR = myReports.filter((r) => r.questId === q.id);
+              const already = hasReportedToday(q.id, user.id);
+              return (
+                <QuestCard
+                  key={q.id}
+                  q={q}
+                  onClick={() => openQuest(q.id)}
+                  extra={{
+                    top: `${myR.length} laporan terkirim${already ? " · ✅ hari ini sudah lapor" : ""}`,
+                    badge: `+${q.xpBase} XP / laporan`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+
+      <Panel title="Aktivitas Terbaru">
+        {myReports.slice(0, 4).length === 0 ? (
+          <Empty icon="🕑" text="Belum ada aktivitas." />
+        ) : (
+          myReports.slice(0, 4).map((r) => {
+            const q = db.quests.find((x) => x.id === r.questId);
+            return (
+              <div
+                key={r.id}
+                className="flex gap-2.5 items-start py-2.5 border-b border-slate-50 last:border-0 text-[13px]"
+              >
+                <div className="w-7 h-7 rounded-full bg-green-50 flex items-center justify-center text-sm flex-shrink-0">
+                  {r.status === "approved" ? "✅" : r.status === "rejected" ? "❌" : "⏳"}
+                </div>
+                <div>
+                  Laporan untuk <b>{q ? q.title : "-"}</b>{" "}
+                  {r.status === "approved"
+                    ? `disetujui, +${r.xpAwarded} XP`
+                    : r.status === "rejected"
+                      ? "ditolak"
+                      : "menunggu verifikasi"}{" "}
+                  · <span className="text-slate-400">{fmtDate(r.ts)}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </Panel>
+    </>
+  );
+}
+
+function WargaMisi({ user, db, openQuest, hasReportedToday }) {
+  const [filter, setFilter] = useState("");
+  const [cat, setCat] = useState("");
+  let list = db.quests.filter((q) => q.status === "aktif");
+  if (cat) list = list.filter((q) => q.category === cat);
+  if (filter) list = list.filter((q) => q.title.toLowerCase().includes(filter.toLowerCase()));
+  const cats = [...new Set(db.quests.map((q) => q.category))];
+  return (
+    <Panel title="Daftar Misi Aktif">
+      <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
+        <input
+          className={inputCls + " sm:flex-1 sm:max-w-xs"}
+          placeholder="Cari misi..."
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        />
+        <select
+          className={inputCls + " sm:w-auto"}
+          value={cat}
+          onChange={(e) => setCat(e.target.value)}
+        >
+          <option value="">Semua Kategori</option>
+          {cats.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
+        </select>
+      </div>
+      {list.length === 0 ? (
+        <Empty icon="🔍" text="Tidak ada misi ditemukan." />
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {list.map((q) => {
+            const already = hasReportedToday(q.id, user.id);
+            return (
+              <QuestCard
+                key={q.id}
+                q={q}
+                onClick={() => openQuest(q.id)}
+                extra={{
+                  top: (
+                    <>
+                      <span className="text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-[10.5px] font-bold mr-1">
+                        {q.category}
+                      </span>
+                      radius {q.radius} m
+                    </>
+                  ),
+                  badge: `+${q.xpBase} XP${already ? " · ✅ sudah lapor hari ini" : ""}`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+function WargaQuestDetail({ user, db, questId, back, submitReport, hasReportedToday }) {
+  const q = db.quests.find((x) => x.id === questId);
+  const [draft, setDraft] = useState({});
+  const [gpsBusy, setGpsBusy] = useState(false);
+  const fileRef = useRef(null);
+
+  if (!q)
+    return (
+      <Panel>
+        <button onClick={back} className="text-sm text-green-700 font-bold mb-2">
+          ← Kembali
+        </button>
+        <p>Misi tidak ditemukan.</p>
+      </Panel>
+    );
+
+  const myR = db.reports
+    .filter((r) => r.userId === user.id && r.questId === q.id)
+    .sort((a, b) => b.ts - a.ts);
+  const already = hasReportedToday(q.id, user.id);
+  const valid = draft.distance !== undefined ? draft.distance <= q.radius : null;
+
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxW = 480;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        setDraft((d) => ({ ...d, photo: canvas.toDataURL("image/jpeg", 0.6) }));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  const checkGPS = () => {
+    setGpsBusy(true);
+    if (!navigator.geolocation) {
+      setGpsBusy(false);
+      setDraft((d) => ({ ...d, gpsError: "no-geo" }));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const dist = Math.round(
+          haversine(pos.coords.latitude, pos.coords.longitude, q.loc.lat, q.loc.lng)
+        );
+        setDraft((d) => ({
+          ...d,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          distance: dist,
+          gpsError: null,
+        }));
+        setGpsBusy(false);
+      },
+      () => {
+        setGpsBusy(false);
+        setDraft((d) => ({ ...d, gpsError: "denied" }));
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+  const simulateLocation = (mode) => {
+    let lat, lng;
+    if (mode === "valid") {
+      lat = q.loc.lat + (Math.random() - 0.5) * 0.0006;
+      lng = q.loc.lng + (Math.random() - 0.5) * 0.0006;
+    } else {
+      lat = q.loc.lat + 0.02 + Math.random() * 0.01;
+      lng = q.loc.lng + 0.02;
+    }
+    const dist = Math.round(haversine(lat, lng, q.loc.lat, q.loc.lng));
+    setDraft((d) => ({ ...d, lat, lng, distance: dist, gpsError: null }));
+  };
+  const send = () => {
+    if (!draft.photo || draft.distance === undefined || draft.distance > q.radius) return;
+    submitReport(q, draft);
+    setDraft({});
+  };
+
+  const infoCards = (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+      <div className="bg-white rounded-xl p-3.5 border border-slate-100">
+        <span className="text-[11px] text-slate-400 block">Status</span>
+        <Tag status={q.status} />
+      </div>
+      <div className="bg-white rounded-xl p-3.5 border border-slate-100">
+        <span className="text-[11px] text-slate-400 block">Kategori</span>
+        <b className="text-[13px]">{q.category}</b>
+      </div>
+      <div className="bg-white rounded-xl p-3.5 border border-slate-100">
+        <span className="text-[11px] text-slate-400 block">Periode</span>
+        <b className="text-[13px]">
+          {q.start} – {q.end}
+        </b>
+      </div>
+      <div className="bg-white rounded-xl p-3.5 border border-slate-100">
+        <span className="text-[11px] text-slate-400 block">Radius Wajib</span>
+        <b className="text-[13px]">{q.radius} meter</b>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <button onClick={back} className="text-[12px] text-green-700 font-bold mb-2">
+        ← Kembali ke Daftar Misi
+      </button>
+      <h2 className="font-bold text-slate-800 text-xl mb-1">
+        {q.icon} {q.title}
+      </h2>
+      <p className="text-[13px] text-slate-500 mb-5 max-w-2xl">{q.desc}</p>
+
+      <div className="grid lg:grid-cols-2 gap-5 items-start">
+        <div>
+          {infoCards}
+          <Panel title="Lokasi Proyek">
+            <div className="text-center">
+              <div className="relative w-32 h-32 mx-auto mb-2.5">
+                <div className="absolute inset-0 rounded-full border-2 border-dashed border-green-300 bg-green-50" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl">
+                  📍
+                </div>
+              </div>
+              <small className="text-slate-400 text-xs">
+                Foto laporan wajib diambil dalam radius <b>{q.radius} meter</b> dari titik lokasi
+                proyek.
+              </small>
+            </div>
+          </Panel>
+          <Panel title="Riwayat Laporanmu di Misi Ini">
+            {myR.length === 0 ? (
+              <Empty icon="📄" text="Belum ada laporan." />
+            ) : (
+              myR.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center gap-2.5 py-2.5 border-b border-slate-100 last:border-0"
+                >
+                  {r.photo ? (
+                    <img src={r.photo} className="w-11 h-11 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-lg bg-slate-100" />
+                  )}
+                  <div className="flex-1">
+                    <b className="text-[12.5px] block">{fmtDate(r.ts)}</b>
+                    <span className="text-[11px] text-slate-400">{r.distance} m dari lokasi</span>
+                  </div>
+                  <Tag status={r.status} />
+                </div>
+              ))
+            )}
+          </Panel>
+        </div>
+
+        <div>
+          {already ? (
+            <Panel>
+              <div className="text-center">
+                <div className="text-lg mb-1">
+                  ✅ <b>Kamu sudah mengirim laporan hari ini.</b>
+                </div>
+                <small className="text-slate-400">Kembali lagi besok untuk melapor lagi.</small>
+              </div>
+            </Panel>
+          ) : (
+            <Panel title="Kirim Laporan Foto Hari Ini">
+              <div
+                onClick={() => fileRef.current?.click()}
+                className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-400 text-[12.5px] cursor-pointer"
+              >
+                {draft.photo ? (
+                  <>
+                    <img src={draft.photo} className="max-h-36 mx-auto rounded-lg mb-2" />
+                    <span>Ganti foto</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="mx-auto mb-1.5" size={28} />
+                    <span>Klik untuk ambil / unggah foto bukti</span>
+                  </>
+                )}
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhoto}
+              />
+
+              <div className="mt-3">
+                {draft.distance === undefined ? (
+                  <>
+                    <Btn variant="outline" className="w-full" disabled={gpsBusy} onClick={checkGPS}>
+                      {gpsBusy ? (
+                        <Loader2 size={15} className="animate-spin" />
+                      ) : (
+                        <MapPin size={15} />
+                      )}{" "}
+                      {gpsBusy ? "Mengambil lokasi..." : "Cek Lokasi GPS Saya"}
+                    </Btn>
+                    {draft.gpsError && (
+                      <div className="mt-2.5 text-[12px] text-slate-500">
+                        ⚠️ Browser menolak/tidak mendukung akses GPS. Gunakan simulasi untuk mencoba
+                        alur validasi, atau izinkan akses lokasi di pengaturan browser:
+                        <div className="flex gap-2 mt-2">
+                          <Btn
+                            size="sm"
+                            variant="green"
+                            className="flex-1"
+                            onClick={() => simulateLocation("valid")}
+                          >
+                            Simulasi: Di Lokasi
+                          </Btn>
+                          <Btn
+                            size="sm"
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => simulateLocation("invalid")}
+                          >
+                            Simulasi: Di Luar Radius
+                          </Btn>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className={`rounded-xl px-3.5 py-2.5 text-[13px] font-semibold flex items-center gap-2 ${
+                        valid ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"
+                      }`}
+                    >
+                      {valid ? <CheckCircle2 size={15} /> : <XCircle size={15} />} Jarak kamu{" "}
+                      {draft.distance} m dari lokasi —{" "}
+                      {valid ? "dalam radius, valid!" : `di luar radius (${q.radius} m).`}
+                    </div>
+                    <button
+                      className="text-xs text-green-700 font-semibold mt-2"
+                      onClick={() => setDraft((d) => ({ ...d, distance: undefined }))}
+                    >
+                      Cek Ulang Lokasi
+                    </button>
+                  </>
+                )}
+              </div>
+              <Btn
+                variant="green"
+                className="w-full mt-3"
+                disabled={!draft.photo || draft.distance === undefined || draft.distance > q.radius}
+                onClick={send}
+              >
+                <Send size={15} /> Kirim Laporan
+              </Btn>
+            </Panel>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WargaReward({ user, db, redeem }) {
+  const myRedemptions = db.redemptions
+    .filter((rd) => rd.userId === user.id)
+    .slice()
+    .reverse();
+  return (
+    <>
+      <Panel
+        title="Katalog Reward"
+        action={
+          <span className="text-[12.5px] text-slate-500">
+            Kamu punya <b className="text-green-700">{(user.xp || 0).toLocaleString("id-ID")} XP</b>
+          </span>
+        }
+      >
+        <div className="grid sm:grid-cols-2 gap-3.5">
+          {db.rewards.map((r) => (
+            <div
+              key={r.id}
+              className="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-center gap-3"
+            >
+              <div className="w-12 h-12 rounded-xl bg-yellow-50 flex items-center justify-center text-xl flex-shrink-0">
+                {r.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <b className="text-[13.5px] block">{r.name}</b>
+                <span className="text-[11.5px] text-slate-400">
+                  {r.xpCost.toLocaleString("id-ID")} XP · stok {r.stock}
+                </span>
+              </div>
+              <Btn
+                size="sm"
+                variant={user.xp >= r.xpCost && r.stock > 0 ? "green" : "outline"}
+                disabled={user.xp < r.xpCost || r.stock <= 0}
+                onClick={() => redeem(r.id)}
+              >
+                Tukar
+              </Btn>
+            </div>
+          ))}
+        </div>
+      </Panel>
+      <Panel title="Riwayat Penukaran">
+        {myRedemptions.length === 0 ? (
+          <Empty icon="🎁" text="Belum ada penukaran." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="text-left text-slate-400 text-[11px] uppercase border-b border-slate-100">
+                  <th className="py-2 pr-3">Reward</th>
+                  <th className="py-2 pr-3">Tanggal</th>
+                  <th className="py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myRedemptions.map((rd) => {
+                  const r = db.rewards.find((x) => x.id === rd.rewardId);
+                  return (
+                    <tr key={rd.id} className="border-b border-slate-50 last:border-0">
+                      <td className="py-2.5 pr-3">{r ? `${r.icon} ${r.name}` : "-"}</td>
+                      <td className="py-2.5 pr-3">{fmtDate(rd.ts)}</td>
+                      <td className="py-2.5">
+                        <Tag status={rd.status === "diambil" ? "approved" : "pending"} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+    </>
+  );
+}
+
+function WargaProfil({ user, onLogout, sendFeedback }) {
+  const lvl = levelInfo(user.xp);
+  const [showForm, setShowForm] = useState(false);
+  const [text, setText] = useState("");
+  return (
+    <>
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-5 max-w-md">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-lg">
+            {initials(user.name)}
+          </div>
+          <div>
+            <b className="text-[16px] block">{user.name}</b>
+            <span className="text-[12.5px] text-slate-400">Warga · Level {lvl.level}</span>
+          </div>
+        </div>
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden mt-3.5">
+          <div className="h-full bg-green-600 rounded-full" style={{ width: lvl.pct + "%" }} />
+        </div>
+        <small className="text-[11px] text-slate-400">
+          {(user.xp || 0).toLocaleString("id-ID")} XP total
+        </small>
+      </div>
+
+      <Panel title="Kirim Kritik & Saran ke Admin" className="max-w-md">
+        {showForm ? (
+          <>
+            <textarea
+              className={inputCls}
+              rows={3}
+              placeholder="Tulis masukanmu..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            <div className="flex gap-2 mt-2">
+              <Btn
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => {
+                  setShowForm(false);
+                  setText("");
+                }}
+              >
+                Batal
+              </Btn>
+              <Btn
+                variant="green"
+                size="sm"
+                className="flex-1"
+                onClick={() => {
+                  sendFeedback(text);
+                  setShowForm(false);
+                  setText("");
+                }}
+              >
+                Kirim
+              </Btn>
+            </div>
+          </>
+        ) : (
+          <Btn variant="outline" className="w-full" onClick={() => setShowForm(true)}>
+            <Pencil size={14} />
+            Tulis Masukan
+          </Btn>
+        )}
+      </Panel>
+      <div className="max-w-md">
+        <Btn variant="outline" className="w-full" onClick={onLogout}>
+          <LogOut size={14} />
+          Keluar
+        </Btn>
+      </div>
+    </>
+  );
+}
+
+
+/* ===== App.jsx ===== */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const wargaNav = [
+  ["beranda", Home, "Beranda"],
+  ["misi", Target, "Misi"],
+  ["reward", Gift, "Reward"],
+  ["profil", User, "Profil"],
+];
+
+function App() {
+  const [db, setDb] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null); // {userId}
+  const [authError, setAuthError] = useState("");
+  const [page, setPage] = useState("dashboard");
+  const [selectedQuestId, setSelectedQuestId] = useState(null);
+  const [editingQuestId, setEditingQuestId] = useState(null); // null | 'new' | id
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2600);
+  };
+
+  // boot: load db + session from localStorage
+  useEffect(() => {
+    let d = storageGet(DB_KEY);
+    if (!d) {
+      d = seedDB();
+      storageSet(DB_KEY, d);
+    }
+    setDb(d);
+    const sess = storageGet(SESSION_KEY);
+    if (sess && sess.userId && d.users.find((u) => u.id === sess.userId)) {
+      setSession(sess);
+      const u = d.users.find((u) => u.id === sess.userId);
+      setPage(u.role === "warga" ? "beranda" : "dashboard");
+    }
+    setLoading(false);
+  }, []);
+
+  // keep multiple tabs of the same browser in sync automatically
+  useEffect(() => {
+    const off = onStorageChange(DB_KEY, (fresh) => {
+      if (fresh) setDb(fresh);
+    });
+    return off;
+  }, []);
+
+  const persist = (next) => {
+    setDb(next);
+    storageSet(DB_KEY, next);
+  };
+  const mutate = (fn) => {
+    const next = JSON.parse(JSON.stringify(db));
+    fn(next);
+    persist(next);
+  };
+
+  const user = db && session ? db.users.find((u) => u.id === session.userId) : null;
+
+  /* ---------- auth actions ---------- */
+  const doLogin = async (username, password) => {
+    const u = db.users.find((x) => x.username.toLowerCase() === username.toLowerCase());
+    if (!u || u.password !== password) {
+      setAuthError("Username atau kata sandi salah.");
+      return;
+    }
+    const sess = { userId: u.id };
+    setSession(sess);
+    storageSet(SESSION_KEY, sess);
+    setPage(u.role === "warga" ? "beranda" : "dashboard");
+  };
+  const doRegister = async (name, username, password) => {
+    if (db.users.some((x) => x.username.toLowerCase() === username.toLowerCase())) {
+      setAuthError("Username sudah digunakan, coba yang lain.");
+      return false;
+    }
+    const newUser = { id: uid("w"), name, username, password, role: "warga", xp: 0 };
+    mutate((d) => d.users.push(newUser));
+    const sess = { userId: newUser.id };
+    setSession(sess);
+    storageSet(SESSION_KEY, sess);
+    setPage("beranda");
+    showToast("Pendaftaran berhasil! Selamat datang di DesaQuest.");
+    return true;
+  };
+  const logout = () => {
+    setSession(null);
+    storageSet(SESSION_KEY, null);
+    setPage("dashboard");
+    setSelectedQuestId(null);
+    setEditingQuestId(null);
+  };
+
+  /* ---------- shared helpers ---------- */
+  const hasReportedToday = (questId, userId) => {
+    const today = todayKey(Date.now());
+    return db.reports.some(
+      (r) => r.questId === questId && r.userId === userId && todayKey(r.ts) === today
+    );
+  };
+
+  /* ---------- petugas actions ---------- */
+  const saveQuest = (data) => {
+    if (!data.id) {
+      mutate((d) => d.quests.push({ ...data, id: uid("q"), createdBy: session.userId }));
+      showToast("Quest baru berhasil dibuat!");
+    } else {
+      mutate((d) => {
+        const q = d.quests.find((x) => x.id === data.id);
+        Object.assign(q, data);
+      });
+      showToast("Quest berhasil diperbarui.");
+    }
+    setEditingQuestId(null);
+    setPage("daftar-quest");
+  };
+  const deleteQuest = (id) => {
+    if (!window.confirm("Hapus quest ini beserta seluruh laporannya?")) return;
+    mutate((d) => {
+      d.quests = d.quests.filter((q) => q.id !== id);
+      d.reports = d.reports.filter((r) => r.questId !== id);
+    });
+    showToast("Quest dihapus.");
+  };
+  const verifyReport = (reportId, action, xpInput) => {
+    let msg = "";
+    mutate((d) => {
+      const r = d.reports.find((x) => x.id === reportId);
+      if (!r) return;
+      if (action === "approve") {
+        const q = d.quests.find((x) => x.id === r.questId);
+        const xp = parseInt(xpInput, 10) || q.xpBase;
+        r.status = "approved";
+        r.xpAwarded = xp;
+        const u = d.users.find((x) => x.id === r.userId);
+        if (u) u.xp = (u.xp || 0) + xp;
+        msg = `Laporan disetujui, +${xp} XP untuk ${u ? u.name : "warga"}.`;
+      } else {
+        r.status = "rejected";
+        r.xpAwarded = 0;
+        msg = "Laporan ditolak.";
+      }
+    });
+    showToast(msg);
+  };
+
+  /* ---------- warga actions ---------- */
+  const submitReport = (quest, draft) => {
+    const report = {
+      id: uid("r"),
+      questId: quest.id,
+      userId: session.userId,
+      photo: draft.photo,
+      ts: Date.now(),
+      lat: draft.lat,
+      lng: draft.lng,
+      distance: draft.distance,
+      status: "pending",
+      xpAwarded: 0,
+    };
+    mutate((d) => d.reports.push(report));
+    showToast("Laporan terkirim! Menunggu verifikasi petugas.");
+  };
+  const redeemReward = (rewardId) => {
+    const rw = db.rewards.find((r) => r.id === rewardId);
+    if (!rw || rw.stock <= 0) {
+      showToast("Stok reward habis.");
+      return;
+    }
+    if ((user.xp || 0) < rw.xpCost) {
+      showToast("XP kamu belum cukup untuk menukar reward ini.");
+      return;
+    }
+    if (!window.confirm(`Tukar ${rw.xpCost} XP dengan "${rw.name}"?`)) return;
+    mutate((d) => {
+      const u = d.users.find((x) => x.id === session.userId);
+      const r = d.rewards.find((x) => x.id === rewardId);
+      u.xp -= r.xpCost;
+      r.stock -= 1;
+      d.redemptions.push({
+        id: uid("rd"),
+        userId: u.id,
+        rewardId: r.id,
+        ts: Date.now(),
+        status: "menunggu",
+      });
+    });
+    showToast("Berhasil ditukar! Ambil reward di kantor desa.");
+  };
+  const sendFeedback = (text) => {
+    if (!text.trim()) return;
+    mutate((d) =>
+      d.feedback.push({
+        id: uid("f"),
+        userId: session.userId,
+        message: text.trim(),
+        ts: Date.now(),
+        status: "baru",
+      })
+    );
+    showToast("Masukan terkirim ke admin. Terima kasih!");
+  };
+
+  /* ---------- admin actions ---------- */
+  const setFeedbackStatus = (id, status) =>
+    mutate((d) => {
+      const f = d.feedback.find((x) => x.id === id);
+      if (f) f.status = status;
+    });
+  const deleteUser = (id) => {
+    if (!window.confirm("Hapus pengguna ini?")) return;
+    mutate((d) => {
+      d.users = d.users.filter((u) => u.id !== id);
+    });
+  };
+  const addPetugas = (name, username, password) => {
+    if (db.users.some((x) => x.username.toLowerCase() === username.toLowerCase())) {
+      showToast("Username sudah digunakan.");
+      return;
+    }
+    mutate((d) => d.users.push({ id: uid("p"), name, username, password, role: "petugas" }));
+    showToast("Akun petugas baru berhasil dibuat.");
+  };
+  const saveReward = (editing, data) => {
+    if (editing === "new") mutate((d) => d.rewards.push({ ...data, id: uid("rw") }));
+    else
+      mutate((d) => {
+        Object.assign(
+          d.rewards.find((r) => r.id === editing),
+          data
+        );
+      });
+    showToast("Reward tersimpan.");
+  };
+  const deleteReward = (id) => {
+    if (!window.confirm("Hapus reward ini?")) return;
+    mutate((d) => {
+      d.rewards = d.rewards.filter((r) => r.id !== id);
+    });
+  };
+  const fulfillRedemption = (id) => {
+    mutate((d) => {
+      const rd = d.redemptions.find((x) => x.id === id);
+      if (rd) rd.status = "diambil";
+    });
+    showToast("Ditandai sudah diambil.");
+  };
+
+  /* ---------- render guards ---------- */
+  if (loading || !db) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-400 gap-2">
+        <Loader2 className="animate-spin" size={18} />
+        Memuat DesaQuest...
+      </div>
+    );
+  }
+
+  if (!session || !user) {
+    return (
+      <>
+        <AuthScreen
+          onLogin={doLogin}
+          onRegister={doRegister}
+          quests={db.quests}
+          wargaCount={db.users.filter((u) => u.role === "warga").length}
+          reportCount={db.reports.length}
+          authError={authError}
+          setAuthError={setAuthError}
+        />
+        <Toast message={toast} />
+      </>
+    );
+  }
+
+  /* ---------- ADMIN ---------- */
+  if (user.role === "admin") {
+    const nav = [
+      ["dashboard", LayoutDashboard, "Dashboard"],
+      ["feedback", MessageSquare, "Kritik & Saran"],
+      ["pengguna", Users, "Kelola Pengguna"],
+      ["reward-admin", Gift, "Kelola Reward"],
+    ];
+    const titles = {
+      dashboard: ["Dashboard Admin", "Ringkasan sistem DesaQuest"],
+      feedback: ["Kritik & Saran", "Kelola masukan dari warga"],
+      pengguna: ["Kelola Pengguna", "Daftar seluruh pengguna sistem"],
+      "reward-admin": ["Kelola Reward", "Atur katalog reward & penukaran"],
+    };
+    const [t, s] = titles[page] || titles.dashboard;
+    return (
+      <>
+        <Shell
+          brandRole="Admin"
+          user={user}
+          navItems={nav}
+          page={page}
+          setPage={setPage}
+          onLogout={logout}
+          title={t}
+          subtitle={s}
+        >
+          {page === "feedback" && <AdminFeedback db={db} setStatus={setFeedbackStatus} />}
+          {page === "pengguna" && (
+            <AdminUsers db={db} deleteUser={deleteUser} addPetugas={addPetugas} />
+          )}
+          {page === "reward-admin" && (
+            <AdminRewards
+              db={db}
+              saveReward={saveReward}
+              deleteReward={deleteReward}
+              fulfillRedemption={fulfillRedemption}
+            />
+          )}
+          {(page === "dashboard" || !["feedback", "pengguna", "reward-admin"].includes(page)) && (
+            <AdminDashboard db={db} />
+          )}
+        </Shell>
+        <Toast message={toast} />
+      </>
+    );
+  }
+
+  /* ---------- PETUGAS ---------- */
+  if (user.role === "petugas") {
+    const nav = [
+      ["dashboard", LayoutDashboard, "Dashboard"],
+      ["buat-quest", PlusCircle, "Buat Quest Baru"],
+      ["daftar-quest", ClipboardList, "Daftar Quest"],
+      ["verifikasi", CheckCircle2, "Verifikasi Laporan"],
+    ];
+    const titles = {
+      dashboard: ["Dashboard Petugas", "Kelola quest pembangunan desa & pantau partisipasi warga"],
+      "buat-quest": ["Buat Quest Baru", "Tentukan tugas pemantauan untuk warga"],
+      "daftar-quest": ["Daftar Quest", "Semua quest yang pernah dibuat"],
+      verifikasi: ["Verifikasi Laporan", "Tinjau laporan foto dari warga"],
+    };
+    const [t, s] = titles[page] || titles.dashboard;
+    return (
+      <>
+        <Shell
+          brandRole="Petugas Desa"
+          user={user}
+          navItems={nav}
+          page={page}
+          setPage={(p) => {
+            setPage(p);
+            if (p === "buat-quest") setEditingQuestId("new");
+          }}
+          onLogout={logout}
+          title={t}
+          subtitle={s}
+        >
+          {page === "buat-quest" && (
+            <QuestForm
+              quest={
+                editingQuestId && editingQuestId !== "new"
+                  ? db.quests.find((q) => q.id === editingQuestId)
+                  : null
+              }
+              onSave={saveQuest}
+              onCancel={() => {
+                setEditingQuestId(null);
+                setPage("daftar-quest");
+              }}
+            />
+          )}
+          {page === "daftar-quest" && (
+            <QuestList
+              db={db}
+              onEdit={(id) => {
+                setEditingQuestId(id);
+                setPage("buat-quest");
+              }}
+              onDelete={deleteQuest}
+            />
+          )}
+          {page === "verifikasi" && <VerifikasiLaporan db={db} verify={verifyReport} />}
+          {(page === "dashboard" ||
+            !["buat-quest", "daftar-quest", "verifikasi"].includes(page)) && (
+            <PetugasDashboard db={db} />
+          )}
+        </Shell>
+        <Toast message={toast} />
+      </>
+    );
+  }
+
+  /* ---------- WARGA ---------- */
+  const wPage = ["beranda", "misi", "misi-detail", "reward", "profil"].includes(page)
+    ? page
+    : "beranda";
+  const wSelectedQuest =
+    wPage === "misi-detail" ? db.quests.find((q) => q.id === selectedQuestId) : null;
+  const wTitles = {
+    beranda: [`Halo, ${user.name.split(" ")[0]} 👋`, "Terus pantau & bangun desamu."],
+    misi: ["Daftar Misi", "Semua misi pemantauan yang bisa kamu ikuti"],
+    "misi-detail": ["Detail Misi", wSelectedQuest ? wSelectedQuest.title : ""],
+    reward: ["Tukar Reward", `Kamu punya ${(user.xp || 0).toLocaleString("id-ID")} XP`],
+    profil: ["Profil", "Profil dan aktivitas kamu"],
+  };
+  const [wTitle, wSubtitle] = wTitles[wPage];
+  return (
+    <>
+      <Shell
+        brandRole="Warga Desa"
+        user={user}
+        navItems={wargaNav}
+        page={wPage === "misi-detail" ? "misi" : wPage}
+        setPage={(p) => {
+          setPage(p);
+          setSelectedQuestId(null);
+        }}
+        onLogout={logout}
+        title={wTitle}
+        subtitle={wSubtitle}
+      >
+        {wPage === "beranda" && (
+          <WargaBeranda
+            user={user}
+            db={db}
+            openQuest={(id) => {
+              setSelectedQuestId(id);
+              setPage("misi-detail");
+            }}
+            hasReportedToday={hasReportedToday}
+          />
+        )}
+        {wPage === "misi" && (
+          <WargaMisi
+            user={user}
+            db={db}
+            openQuest={(id) => {
+              setSelectedQuestId(id);
+              setPage("misi-detail");
+            }}
+            hasReportedToday={hasReportedToday}
+          />
+        )}
+        {wPage === "misi-detail" && (
+          <WargaQuestDetail
+            user={user}
+            db={db}
+            questId={selectedQuestId}
+            back={() => setPage("misi")}
+            submitReport={submitReport}
+            hasReportedToday={hasReportedToday}
+          />
+        )}
+        {wPage === "reward" && <WargaReward user={user} db={db} redeem={redeemReward} />}
+        {wPage === "profil" && (
+          <WargaProfil user={user} onLogout={logout} sendFeedback={sendFeedback} />
+        )}
+      </Shell>
+      <Toast message={toast} />
+    </>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+</body>
+</html>
